@@ -34,7 +34,7 @@ const AIWizard = () => {
     try {
       // For now, just get all public recipes and pick random
       // In future, implement proper filtering
-      const res = await axios.get('http://localhost:5000/api/recipes');
+      const res = await axios.get('/api/recipes');
       const recipes = res.data;
       if (recipes.length > 0) {
         const randomRecipe =

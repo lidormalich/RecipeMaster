@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
+import {toast} from 'react-toastify';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ const Register = () => {
     email: '',
     password: '',
   });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const {name, email, password} = formData;
@@ -17,17 +19,59 @@ const Register = () => {
 
   const onSubmit = async e => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      const res = await axios.post(
-        'http://localhost:5000/api/auth/register',
-        formData,
-      );
+      const res = await axios.post('/api/auth/register', formData);
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] =
         `Bearer ${res.data.token}`;
-      navigate('/');
+
+      toast.success('נרשמת בהצלחה! ברוך הבא למשפחת RecipeMaster 🎉', {
+        icon: '✅',
+      });
+
+      setTimeout(() => {
+        navigate('/');
+        window.location.reload();
+      }, 1000);
     } catch (err) {
       console.error(err);
+
+      // טיפול בשגיאות מפורט
+      if (err.response) {
+        const errorMsg = err.response.data.msg || err.response.data.message;
+
+        if (err.response.status === 400) {
+          if (errorMsg.includes('exist')) {
+            toast.error('המשתמש כבר קיים במערכת. נסה להתחבר', {
+              icon: '👤',
+            });
+          } else {
+            toast.error(`שגיאה: ${errorMsg}`, {
+              icon: '⚠️',
+            });
+          }
+        } else if (err.response.status === 422) {
+          toast.error('נתונים לא תקינים. בדוק שכל השדות מלאים נכון', {
+            icon: '📝',
+          });
+        } else {
+          toast.error(`שגיאת שרת: ${errorMsg || 'אנא נסה שוב מאוחר יותר'}`, {
+            icon: '🔴',
+          });
+        }
+      } else if (err.request) {
+        toast.error('לא ניתן להתחבר לשרת. בדוק את החיבור לאינטרנט', {
+          icon: '🌐',
+        });
+      } else {
+        toast.error('שגיאה לא צפויה. אנא נסה שוב', {
+          icon: '⚠️',
+        });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,8 +118,9 @@ const Register = () => {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
-          הרשם
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-all duration-200">
+          {loading ? 'נרשם...' : 'הרשם'}
         </button>
       </form>
       <p className="mt-4 text-center">

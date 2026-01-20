@@ -1,12 +1,14 @@
 import React, {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
+import {toast} from 'react-toastify';
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const {email, password} = formData;
@@ -16,17 +18,60 @@ const Login = () => {
 
   const onSubmit = async e => {
     e.preventDefault();
+    setLoading(true);
+
     try {
-      const res = await axios.post(
-        'http://localhost:5000/api/auth/login',
-        formData,
-      );
+      const res = await axios.post('/api/auth/login', formData);
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] =
         `Bearer ${res.data.token}`;
-      navigate('/');
+
+      toast.success('התחברת בהצלחה! ברוך הבא 🎉', {
+        icon: '✅',
+      });
+
+      setTimeout(() => {
+        navigate('/');
+        window.location.reload();
+      }, 1000);
     } catch (err) {
       console.error(err);
+
+      // טיפול בשגיאות מפורט
+      if (err.response) {
+        // השרת החזיר תשובה עם שגיאה
+        const errorMsg = err.response.data.msg || err.response.data.message;
+
+        if (err.response.status === 400) {
+          toast.error(`שגיאה: ${errorMsg}`, {
+            icon: '⚠️',
+          });
+        } else if (err.response.status === 401) {
+          toast.error('אימייל או סיסמה שגויים', {
+            icon: '🔒',
+          });
+        } else if (err.response.status === 404) {
+          toast.error('המשתמש לא קיים במערכת', {
+            icon: '❌',
+          });
+        } else {
+          toast.error(`שגיאת שרת: ${errorMsg || 'אנא נסה שוב מאוחר יותר'}`, {
+            icon: '🔴',
+          });
+        }
+      } else if (err.request) {
+        // הבקשה נשלחה אבל לא התקבלה תשובה
+        toast.error('לא ניתן להתחבר לשרת. בדוק את החיבור לאינטרנט', {
+          icon: '🌐',
+        });
+      } else {
+        // שגיאה בהגדרת הבקשה
+        toast.error('שגיאה לא צפויה. אנא נסה שוב', {
+          icon: '⚠️',
+        });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,8 +107,9 @@ const Login = () => {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
-          התחבר
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-all duration-200">
+          {loading ? 'מתחבר...' : 'התחבר'}
         </button>
       </form>
       <p className="mt-4 text-center">
@@ -72,13 +118,13 @@ const Login = () => {
           הרשם
         </Link>
       </p>
-      <p className="mt-4 text-center">
+      {/* <p className="mt-4 text-center">
         <a
-          href="http://localhost:5000/api/auth/google"
+          href="/api/auth/google"
           className="text-blue-600">
           התחבר עם גוגל
         </a>
-      </p>
+      </p> */}
     </div>
   );
 };

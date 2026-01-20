@@ -68,7 +68,7 @@ const CreateRecipe = () => {
         const imageUrl = await uploadImage();
         recipeData.mainImage = imageUrl;
       }
-      await axios.post('http://localhost:5000/api/recipes', recipeData);
+      await axios.post('/api/recipes', recipeData);
       navigate('/');
     } catch (err) {
       console.error(err);

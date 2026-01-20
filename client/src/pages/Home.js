@@ -17,9 +17,7 @@ const Home = () => {
     try {
       const params = new URLSearchParams();
       if (search) params.append('search', search);
-      const res = await axios.get(
-        `http://localhost:5000/api/recipes?${params}`,
-      );
+      const res = await axios.get(`/api/recipes?${params}`);
       setRecipes(res.data);
     } catch (err) {
       console.error(err);

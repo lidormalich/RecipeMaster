@@ -15,7 +15,7 @@ const Profile = () => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/auth/me');
+      const res = await axios.get('/api/auth/me');
       setUser(res.data);
       fetchUserRecipes(res.data._id);
     } catch (err) {
@@ -25,9 +25,7 @@ const Profile = () => {
 
   const fetchUserRecipes = async userId => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/api/recipes/user/${userId}`,
-      );
+      const res = await axios.get(`/api/recipes/user/${userId}`);
       setRecipes(res.data);
     } catch (err) {
       console.error(err);
@@ -38,9 +36,7 @@ const Profile = () => {
 
   const fetchCart = async () => {
     try {
-      const res = await axios.get(
-        'http://localhost:5000/api/recipes/user/cart',
-      );
+      const res = await axios.get('/api/recipes/user/cart');
       setCart(res.data);
     } catch (err) {
       console.error(err);
@@ -49,7 +45,7 @@ const Profile = () => {
 
   const addToCart = async shortId => {
     try {
-      await axios.post(`http://localhost:5000/api/recipes/${shortId}/cart`);
+      await axios.post(`/api/recipes/${shortId}/cart`);
       fetchCart();
       alert('המצרכים נוספו לסל!');
     } catch (err) {
@@ -59,7 +55,7 @@ const Profile = () => {
 
   const removeFromCart = async (shortId, ingredient) => {
     try {
-      await axios.delete(`http://localhost:5000/api/recipes/${shortId}/cart`, {
+      await axios.delete(`/api/recipes/${shortId}/cart`, {
         data: {ingredient},
       });
       setCart(

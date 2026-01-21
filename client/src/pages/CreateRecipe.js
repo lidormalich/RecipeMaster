@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
+import {toast} from 'react-toastify';
+import ImageUpload from '../components/ImageUpload';
 
 const CreateRecipe = () => {
   const [formData, setFormData] = useState({
@@ -37,17 +39,20 @@ const CreateRecipe = () => {
     return new Promise((resolve, reject) => {
       setLoad(true);
       const formData = new FormData();
-      formData.append('file', imageSelected[0]);
-      formData.append('upload_preset', 'nnmxcowx');
+      formData.append('image', imageSelected[0]);
+
+      const token = localStorage.getItem('token');
 
       axios
-        .post(
-          'https://api.cloudinary.com/v1_1/ddk6cfhl0/image/upload',
-          formData,
-        )
+        .post('/api/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
+        })
         .then(response => {
           setLoad(false);
-          resolve(response.data.secure_url);
+          resolve(response.data.url);
         })
         .catch(e => {
           console.log(e);
@@ -59,6 +64,14 @@ const CreateRecipe = () => {
 
   const onSubmit = async e => {
     e.preventDefault();
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('עליך להתחבר כדי ליצור מתכון');
+      navigate('/login');
+      return;
+    }
+
     try {
       let recipeData = {
         ...formData,
@@ -68,7 +81,10 @@ const CreateRecipe = () => {
         const imageUrl = await uploadImage();
         recipeData.mainImage = imageUrl;
       }
-      await axios.post('/api/recipes', recipeData);
+      await axios.post('/api/recipes', recipeData, {
+        headers: {Authorization: `Bearer ${token}`},
+      });
+      toast.success('המתכון נוצר בהצלחה! ✅');
       navigate('/');
     } catch (err) {
       console.error(err);
@@ -128,17 +144,11 @@ const CreateRecipe = () => {
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            תמונה ראשית
-          </label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => setImageSelected(e.target.files)}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          />
-        </div>
+        <ImageUpload
+          onImageSelect={setImageSelected}
+          currentImage={mainImage}
+          loading={load}
+        />
         <div>
           <label className="block text-sm font-medium text-gray-700">
             קישור לוידאו

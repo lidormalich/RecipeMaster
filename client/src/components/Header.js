@@ -6,7 +6,7 @@ const Header = () => {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [cartItemsCount] = useState(3); // נתון דינמי - יש לחבר למצב אמיתי
+  const [cartItemsCount, setCartItemsCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,6 +14,7 @@ const Header = () => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchUser();
+      fetchCartCount();
     }
   }, []);
 
@@ -24,6 +25,20 @@ const Header = () => {
     } catch (err) {
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
+    }
+  };
+
+  const fetchCartCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await axios.get('/api/cart', {
+        headers: {Authorization: `Bearer ${token}`},
+      });
+      setCartItemsCount(res.data?.items?.length || 0);
+    } catch (err) {
+      console.error('Error fetching cart count:', err);
     }
   };
 
@@ -62,8 +77,7 @@ const Header = () => {
           {/* לוגו */}
           <Link
             to="/"
-            className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent hover:from-indigo-300 hover:to-purple-400 transition-all duration-300"
-          >
+            className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent hover:from-indigo-300 hover:to-purple-400 transition-all duration-300">
             🍳 RecipeMaster
           </Link>
 
@@ -81,8 +95,7 @@ const Header = () => {
                 />
                 <button
                   type="submit"
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-indigo-400 transition-colors"
-                >
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-indigo-400 transition-colors">
                   🔍
                 </button>
               </div>
@@ -91,9 +104,10 @@ const Header = () => {
             {/* קישור AI Wizard */}
             <Link
               to="/ai-wizard"
-              className="flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 group"
-            >
-              <span className="text-xl group-hover:scale-110 transition-transform">🤖</span>
+              className="flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 group">
+              <span className="text-xl group-hover:scale-110 transition-transform">
+                🤖
+              </span>
               <span className="font-medium">מה לאכול?</span>
             </Link>
 
@@ -102,16 +116,14 @@ const Header = () => {
                 {/* כפתור צור מתכון - בולט */}
                 <Link
                   to="/create-recipe"
-                  className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-200 hover:scale-105"
-                >
+                  className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-200 hover:scale-105">
                   ➕ צור מתכון
                 </Link>
 
                 {/* המתכונים שלי */}
                 <Link
                   to="/profile"
-                  className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium"
-                >
+                  className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                   📖 המתכונים שלי
                 </Link>
 
@@ -119,8 +131,7 @@ const Header = () => {
                 {user.role === 'poster' && (
                   <Link
                     to="/manage-tags"
-                    className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium"
-                  >
+                    className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                     🏷️ ניהול תגיות
                   </Link>
                 )}
@@ -128,8 +139,7 @@ const Header = () => {
                 {user.role === 'admin' && (
                   <Link
                     to="/manage-users"
-                    className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium"
-                  >
+                    className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                     👥 ניהול משתמשים
                   </Link>
                 )}
@@ -137,11 +147,12 @@ const Header = () => {
                 {/* סל קניות עם Badge */}
                 <Link
                   to="/cart"
-                  className="relative p-2 rounded-lg hover:bg-slate-800 transition-all duration-200 group"
-                >
-                  <span className="text-2xl group-hover:scale-110 transition-transform inline-block">🛒</span>
+                  className="relative p-2 rounded-lg hover:bg-slate-800 transition-all duration-200 group">
+                  <span className="text-2xl group-hover:scale-110 transition-transform inline-block">
+                    🛒
+                  </span>
                   {cartItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-slate-900 animate-pulse">
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center ring-2 ring-slate-900 ">
                       {cartItemsCount}
                     </span>
                   )}
@@ -150,23 +161,28 @@ const Header = () => {
                 {/* תפריט פרופיל עם Dropdown */}
                 <div className="relative">
                   <button
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       setIsProfileOpen(!isProfileOpen);
                     }}
-                    className="flex items-center space-x-2 space-x-reverse px-3 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200"
-                  >
+                    className="flex items-center space-x-2 space-x-reverse px-3 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-sm">
                       {user.name?.[0]?.toUpperCase() || '👤'}
                     </div>
-                    <span className="font-medium hidden xl:inline">{user.name}</span>
+                    <span className="font-medium hidden xl:inline">
+                      {user.name}
+                    </span>
                     <svg
                       className={`w-4 h-4 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`}
                       fill="none"
                       stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
 
@@ -175,28 +191,27 @@ const Header = () => {
                     <div className="absolute left-0 mt-2 w-56 bg-slate-800 rounded-lg shadow-2xl border border-slate-700 overflow-hidden animate-fadeIn">
                       <div className="px-4 py-3 border-b border-slate-700">
                         <p className="text-sm text-slate-400">מחובר בתור</p>
-                        <p className="font-semibold text-white truncate">{user.email}</p>
+                        <p className="font-semibold text-white truncate">
+                          {user.email}
+                        </p>
                       </div>
                       <Link
                         to="/profile"
                         onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-slate-700 transition-colors"
-                      >
+                        className="flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-slate-700 transition-colors">
                         <span>👤</span>
                         <span>הפרופיל שלי</span>
                       </Link>
                       <Link
                         to="/trash"
                         onClick={() => setIsProfileOpen(false)}
-                        className="flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-slate-700 transition-colors"
-                      >
+                        className="flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-slate-700 transition-colors">
                         <span>🗑️</span>
                         <span>סל מיחזור</span>
                       </Link>
                       <button
                         onClick={logout}
-                        className="w-full flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-red-600 transition-colors border-t border-slate-700 text-red-400 hover:text-white"
-                      >
+                        className="w-full flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-red-600 transition-colors border-t border-slate-700 text-red-400 hover:text-white">
                         <span>🚪</span>
                         <span>התנתקות</span>
                       </button>
@@ -209,14 +224,12 @@ const Header = () => {
                 {/* כפתורים לאורח */}
                 <Link
                   to="/login"
-                  className="px-5 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium"
-                >
+                  className="px-5 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                   התחברות
                 </Link>
                 <Link
                   to="/register"
-                  className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-200 hover:scale-105"
-                >
+                  className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-200 hover:scale-105">
                   הרשמה
                 </Link>
               </>
@@ -226,18 +239,26 @@ const Header = () => {
           {/* כפתור תפריט המבורגר - מובייל */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors"
-          >
+            className="lg:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors">
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>
@@ -258,8 +279,7 @@ const Header = () => {
                 />
                 <button
                   type="submit"
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"
-                >
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
                   🔍
                 </button>
               </div>
@@ -269,8 +289,7 @@ const Header = () => {
               <Link
                 to="/ai-wizard"
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
-              >
+                className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                 <span className="text-xl">🤖</span>
                 <span className="font-medium">מה לאכול?</span>
               </Link>
@@ -280,16 +299,14 @@ const Header = () => {
                   <Link
                     to="/create-recipe"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 font-semibold"
-                  >
+                    className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 font-semibold">
                     <span>➕</span>
                     <span>צור מתכון</span>
                   </Link>
                   <Link
                     to="/profile"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
-                  >
+                    className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                     <span>📖</span>
                     <span>המתכונים שלי</span>
                   </Link>
@@ -298,8 +315,7 @@ const Header = () => {
                     <Link
                       to="/manage-tags"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
-                    >
+                      className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                       <span>🏷️</span>
                       <span>ניהול תגיות</span>
                     </Link>
@@ -309,8 +325,7 @@ const Header = () => {
                     <Link
                       to="/manage-users"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
-                    >
+                      className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                       <span>👥</span>
                       <span>ניהול משתמשים</span>
                     </Link>
@@ -319,8 +334,7 @@ const Header = () => {
                   <Link
                     to="/cart"
                     onClick={() => setIsMenuOpen(false)}
-                    className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
-                  >
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                     <div className="flex items-center space-x-3 space-x-reverse">
                       <span className="text-xl">🛒</span>
                       <span className="font-medium">סל קניות</span>
@@ -335,8 +349,7 @@ const Header = () => {
                   <Link
                     to="/trash"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
-                  >
+                    className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                     <span>🗑️</span>
                     <span>סל מיחזור</span>
                   </Link>
@@ -350,8 +363,7 @@ const Header = () => {
                         setIsMenuOpen(false);
                         logout();
                       }}
-                      className="w-full flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-red-600 transition-colors text-red-400 hover:text-white"
-                    >
+                      className="w-full flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-red-600 transition-colors text-red-400 hover:text-white">
                       <span>🚪</span>
                       <span>התנתקות</span>
                     </button>
@@ -362,15 +374,13 @@ const Header = () => {
                   <Link
                     to="/login"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-center font-medium"
-                  >
+                    className="block px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-center font-medium">
                     התחברות
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block px-4 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 font-semibold text-center"
-                  >
+                    className="block px-4 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 font-semibold text-center">
                     הרשמה
                   </Link>
                 </>

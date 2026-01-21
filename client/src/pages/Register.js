@@ -40,10 +40,10 @@ const Register = () => {
 
       // טיפול בשגיאות מפורט
       if (err.response) {
-        const errorMsg = err.response.data.msg || err.response.data.message;
+        const errorMsg = err.response.data?.msg || err.response.data?.message || 'שגיאה לא ידועה';
 
         if (err.response.status === 400) {
-          if (errorMsg.includes('exist')) {
+          if (errorMsg && errorMsg.includes && errorMsg.includes('exist')) {
             toast.error('המשתמש כבר קיים במערכת. נסה להתחבר', {
               icon: '👤',
             });
@@ -57,7 +57,7 @@ const Register = () => {
             icon: '📝',
           });
         } else {
-          toast.error(`שגיאת שרת: ${errorMsg || 'אנא נסה שוב מאוחר יותר'}`, {
+          toast.error(`שגיאת שרת: ${errorMsg}`, {
             icon: '🔴',
           });
         }

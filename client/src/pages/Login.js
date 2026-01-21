@@ -40,7 +40,7 @@ const Login = () => {
       // טיפול בשגיאות מפורט
       if (err.response) {
         // השרת החזיר תשובה עם שגיאה
-        const errorMsg = err.response.data.msg || err.response.data.message;
+        const errorMsg = err.response.data?.msg || err.response.data?.message || 'שגיאה לא ידועה';
 
         if (err.response.status === 400) {
           toast.error(`שגיאה: ${errorMsg}`, {
@@ -55,7 +55,7 @@ const Login = () => {
             icon: '❌',
           });
         } else {
-          toast.error(`שגיאת שרת: ${errorMsg || 'אנא נסה שוב מאוחר יותר'}`, {
+          toast.error(`שגיאת שרת: ${errorMsg}`, {
             icon: '🔴',
           });
         }

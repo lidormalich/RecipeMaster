@@ -71,53 +71,75 @@ const Profile = () => {
   if (loading) return <div>טוען...</div>;
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">פרופיל</h1>
+    <div className="space-y-12">
+      {/* User Info Section */}
       {user && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold">{user.name}</h2>
-          <div>{user.email}</div>
-          <div>{user.role}</div>
-          <div>{new Date(user.createdAt).toLocaleDateString()}</div>
+        <div className="bg-white rounded-2xl shadow-lg p-6 lg:p-8 transform hover:scale-[1.02] transition-transform duration-300">
+          <div className="flex items-center space-x-4 space-x-reverse">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
+              {user.name?.[0]?.toUpperCase()}
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">{user.name}</h1>
+              <p className="text-gray-500">{user.email}</p>
+            </div>
+          </div>
+          <div className="mt-6 border-t border-gray-200 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <span className="text-purple-500">🏷️</span>
+              <span>
+                תפקיד:{' '}
+                <span className="font-semibold text-gray-800 capitalize">
+                  {user.role}
+                </span>
+              </span>
+            </div>
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <span className="text-indigo-500">🗓️</span>
+              <span>
+                הצטרף בתאריך:{' '}
+                <span className="font-semibold text-gray-800">
+                  {new Date(user.createdAt).toLocaleDateString()}
+                </span>
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
-      <h2 className="text-2xl font-semibold mb-4">סל קניות</h2>
-      <div className="mb-8 bg-white p-4 rounded shadow">
-        {cart.length === 0 ? (
-          <p>הסל ריק</p>
-        ) : (
-          <ul className="space-y-2">
-            {cart.map((item, index) => (
-              <li key={index} className="flex items-center gap-3 border-b pb-2">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 cursor-pointer"
-                  onChange={() => removeFromCart(item.shortId, item.ingredient)}
-                  title="סמן כנרכש להסרה"
-                />
-                <span className="font-medium">{item.ingredient}</span>
-                <span className="text-sm text-gray-500">
-                  (עבור מתכון: {item.recipeTitle})
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <h2 className="text-2xl font-semibold mb-4">המתכונים שלי</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {recipes.map(recipe => (
-          <div key={recipe.shortId} className="flex flex-col">
-            <RecipeCard recipe={recipe} />
-            <button
-              onClick={() => addToCart(recipe.shortId)}
-              className="mt-2 bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition">
-              הוסף מצרכים לסל
-            </button>
+      {/* My Recipes Section */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">המתכונים שלי</h2>
+        {recipes.length === 0 ? (
+          <div className="text-center bg-white rounded-2xl shadow-lg p-8">
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              עדיין לא יצרת מתכונים
+            </h3>
+            <p className="text-gray-500">
+              רוצה להתחיל? לחץ על "צור מתכון" בתפריט הראשי.
+            </p>
           </div>
-        ))}
+        ) : (
+          <>
+            <div className="mb-6 bg-white p-4 rounded-xl shadow text-center text-lg font-bold text-gray-700">
+              ✨ יצרת{' '}
+              <span className="text-indigo-600 text-xl">{recipes.length}</span>{' '}
+              מתכונים בסך הכל ✨
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recipes.map(recipe => (
+                <div key={recipe.shortId} className="flex flex-col">
+                  <RecipeCard recipe={recipe} />
+                  {/* <button
+                    onClick={() => addToCart(recipe.shortId)}
+                    className="mt-2 bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition">
+                    הוסף מצרכים לסל
+                  </button> */}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {useParams, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {toast} from 'react-toastify';
+import ShareModal from '../components/ShareModal';
 
 const RecipeDetail = () => {
   const {shortId} = useParams();
@@ -10,10 +11,27 @@ const RecipeDetail = () => {
   const [loading, setLoading] = useState(true);
   const [cookingMode, setCookingMode] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     fetchRecipe();
+    fetchCurrentUser();
   }, [shortId]);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await axios.get('/api/auth/me', {
+        headers: {Authorization: `Bearer ${token}`},
+      });
+      setCurrentUser(res.data);
+    } catch (err) {
+      console.error('Error fetching user:', err);
+    }
+  };
 
   const fetchRecipe = async () => {
     try {
@@ -68,6 +86,11 @@ const RecipeDetail = () => {
       setAddingToCart(false);
     }
   };
+
+  const isOwner =
+    currentUser &&
+    recipe &&
+    (currentUser._id === recipe.author?._id || currentUser._id === recipe.author);
 
   if (loading) return <div className="text-center py-8">טוען...</div>;
   if (!recipe) return <div className="text-center py-8">המתכון לא נמצא</div>;
@@ -132,11 +155,10 @@ const RecipeDetail = () => {
   return (
     <div className="max-w-4xl mx-auto">
       {/* כפתורי פעולה עליונים */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="flex flex-wrap gap-3 mb-6 items-center">
         <button
           onClick={() => setCookingMode(true)}
-          className="flex items-center space-x-2 space-x-reverse px-5 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-        >
+          className="flex items-center space-x-2 space-x-reverse px-5 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white font-semibold rounded-lg hover:from-orange-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
           <span className="text-2xl">👨‍🍳</span>
           <span>מצב בישול</span>
         </button>
@@ -144,10 +166,38 @@ const RecipeDetail = () => {
         <button
           onClick={addToCart}
           disabled={addingToCart}
-          className="flex items-center space-x-2 space-x-reverse px-5 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+          className="flex items-center space-x-2 space-x-reverse px-5 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
           <span className="text-2xl">🛒</span>
           <span>{addingToCart ? 'מוסיף...' : 'הוסף מרכיבים לסל'}</span>
+        </button>
+
+        {/* כפתור עריכה - רק לבעלים */}
+        {isOwner && (
+          <button
+            onClick={() => navigate(`/recipe/${shortId}/edit`)}
+            className="flex items-center space-x-2 space-x-reverse px-5 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+            <span className="text-2xl">✏️</span>
+            <span>ערוך מתכון</span>
+          </button>
+        )}
+
+        {/* כפתור שיתוף - מינימליסטי בצד שמאל */}
+        <button
+          onClick={() => setShowShareModal(true)}
+          className="mr-auto w-11 h-11 bg-white hover:bg-gray-50 rounded-full shadow-md hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center group border border-gray-200"
+          title="שתף מתכון">
+          <svg
+            className="w-5 h-5 text-gray-700 group-hover:text-indigo-600 transition-colors duration-200"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+            />
+          </svg>
         </button>
       </div>
 
@@ -251,6 +301,13 @@ const RecipeDetail = () => {
           ))}
         </div>
       )}
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        recipe={recipe}
+      />
     </div>
   );
 };

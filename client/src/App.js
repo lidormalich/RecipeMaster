@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import RecipeDetail from './pages/RecipeDetail';
 import CreateRecipe from './pages/CreateRecipe';
+import EditRecipe from './pages/EditRecipe';
 import Profile from './pages/Profile';
 import Cart from './pages/Cart';
 import AIWizard from './components/AIWizard';
@@ -24,6 +25,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/recipe/:shortId" element={<RecipeDetail />} />
+            <Route path="/recipe/:shortId/edit" element={<EditRecipe />} />
             <Route path="/create-recipe" element={<CreateRecipe />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/cart" element={<Cart />} />

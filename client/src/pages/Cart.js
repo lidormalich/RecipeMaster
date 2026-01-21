@@ -101,16 +101,13 @@ const Cart = () => {
     return (
       <div className="max-w-4xl mx-auto text-center py-12">
         <div className="text-6xl mb-4">🛒</div>
-        <h1 className="text-3xl font-bold mb-4 text-gray-800">
-          סל הקניות ריק
-        </h1>
+        <h1 className="text-3xl font-bold mb-4 text-gray-800">סל הקניות ריק</h1>
         <p className="text-gray-600 mb-6">
           עדיין לא הוספת מרכיבים לסל. עבור למתכון והוסף מרכיבים!
         </p>
         <Link
           to="/"
-          className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200"
-        >
+          className="inline-block px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-200">
           חזור לדף הבית
         </Link>
       </div>
@@ -129,25 +126,38 @@ const Cart = () => {
             <span className="text-5xl ml-3">🛒</span>
             סל הקניות שלי
           </h1>
+
           <p className="text-gray-600 mt-2">
             סה"כ {cart.items.length} מרכיבים | {checkedCount} מסומנים
           </p>
         </div>
         <button
           onClick={clearCart}
-          className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 shadow-md"
-        >
+          className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 shadow-md">
           🗑️ נקה הכל
         </button>
       </div>
-
+      {/* טיפ */}
+      <div className="mt-8 mb-8 bg-blue-50 border-r-4 border-blue-500 p-4 rounded-lg">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <span className="text-2xl">💡</span>
+          </div>
+          <div className="mr-3">
+            <h3 className="text-sm font-semibold text-blue-800">טיפ שימושי</h3>
+            <p className="text-sm text-blue-700 mt-1">
+              סמן מרכיבים שכבר קנית כדי לעקוב אחרי ההתקדמות שלך בסופרמרקט.
+              הנתונים נשמרים אוטומטית!
+            </p>
+          </div>
+        </div>
+      </div>
       {/* רשימת מרכיבים מקובצת לפי מתכון */}
       <div className="space-y-6">
         {Object.entries(groupedItems).map(([recipeTitle, group]) => (
           <div
             key={recipeTitle}
-            className="bg-white rounded-lg shadow-md overflow-hidden"
-          >
+            className="bg-white rounded-lg shadow-md overflow-hidden">
             {/* כותרת המתכון */}
             <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-4">
               <div className="flex justify-between items-center">
@@ -155,8 +165,7 @@ const Cart = () => {
                 {group.shortId && (
                   <Link
                     to={`/recipe/${group.shortId}`}
-                    className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
-                  >
+                    className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors">
                     👁️ צפה במתכון
                   </Link>
                 )}
@@ -173,8 +182,7 @@ const Cart = () => {
                   key={item._id}
                   className={`px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors ${
                     checkedItems[item._id] ? 'bg-green-50' : ''
-                  }`}
-                >
+                  }`}>
                   <div className="flex items-center flex-1">
                     {/* Checkbox */}
                     <input
@@ -195,8 +203,7 @@ const Cart = () => {
                         checkedItems[item._id]
                           ? 'line-through text-gray-500'
                           : ''
-                      }`}
-                    >
+                      }`}>
                       {item.ingredient}
                     </span>
                   </div>
@@ -205,14 +212,12 @@ const Cart = () => {
                   <button
                     onClick={() => deleteItem(item._id)}
                     className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                    title="מחק מהסל"
-                  >
+                    title="מחק מהסל">
                     <svg
                       className="w-5 h-5"
                       fill="none"
                       stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                      viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -226,22 +231,6 @@ const Cart = () => {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* טיפ */}
-      <div className="mt-8 bg-blue-50 border-r-4 border-blue-500 p-4 rounded-lg">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <span className="text-2xl">💡</span>
-          </div>
-          <div className="mr-3">
-            <h3 className="text-sm font-semibold text-blue-800">טיפ שימושי</h3>
-            <p className="text-sm text-blue-700 mt-1">
-              סמן מרכיבים שכבר קנית כדי לעקוב אחרי ההתקדמות שלך בסופרמרקט. הנתונים
-              נשמרים אוטומטית!
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

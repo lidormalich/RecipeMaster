@@ -13,7 +13,7 @@ exports.getRecipes = async (req, res) => {
         {title: {$regex: search, $options: 'i'}},
         {description: {$regex: search, $options: 'i'}},
         {ingredients: {$regex: search, $options: 'i'}},
-        {author: {$regex: search, $options: 'i'}}, // assuming author name
+        {instructions: {$regex: search, $options: 'i'}},
       ];
     }
 
@@ -115,7 +115,7 @@ exports.getCart = async (req, res) => {
 exports.getRecipe = async (req, res) => {
   try {
     const recipe = await Recipe.findOne({shortId: req.params.shortId})
-      .populate('author', 'name')
+      .populate('author', 'name email')
       .populate('tags', 'name');
 
     if (!recipe || recipe.isDeleted) {

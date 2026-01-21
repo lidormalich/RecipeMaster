@@ -44,6 +44,7 @@ app.use('/api/recipes', require('./routes/recipes'));
 app.use('/api/tags', require('./routes/tags'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/cart', require('./routes/cart'));
+app.use('/api/upload', require('./routes/upload'));
 
 const reactBuildPath = path.join(__dirname, 'client/build');
 

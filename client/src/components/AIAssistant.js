@@ -123,7 +123,7 @@ const AIAssistant = () => {
           {/* הכפתור עצמו */}
           <div className="relative bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 hover:scale-105 flex items-center space-x-3 space-x-reverse border-2 border-transparent group-hover:border-cyan-400">
             <span className="text-xl animate-bounce">✨</span>
-            <span className="font-semibold text-sm">מצא מתכון עם AI</span>
+            <span className="font-semibold text-sm">מה אוכלים היום?</span>
           </div>
         </div>
       </button>

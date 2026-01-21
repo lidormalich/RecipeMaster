@@ -41,13 +41,23 @@ const Register = () => {
 
       // טיפול בשגיאות מפורט
       if (err?.response) {
-        const errorMsg =
+        let errorMsg =
           err.response.data?.msg ||
           err.response.data?.message ||
           'שגיאה לא ידועה';
 
+        // Handle express-validator errors
+        if (
+          err.response.data?.errors &&
+          Array.isArray(err.response.data.errors)
+        ) {
+          errorMsg = err.response.data.errors
+            .map(error => error.msg)
+            .join(', ');
+        }
+
         if (err?.response?.status === 400) {
-          if (errorMsg && errorMsg?.includes && errorMsg?.includes('exist')) {
+          if (errorMsg && errorMsg.includes && errorMsg.includes('exist')) {
             toast.error('המשתמש כבר קיים במערכת. נסה להתחבר', {
               icon: '👤',
             });
@@ -117,8 +127,10 @@ const Register = () => {
             value={password}
             onChange={onChange}
             required
+            minLength={6}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
+          <p className="mt-1 text-sm text-gray-500">מינימום 6 תווים</p>
         </div>
         <button
           type="submit"

@@ -114,7 +114,7 @@ const Header = () => {
                   </Link>
                 )}
 
-                {user.role === 'admin' && (
+                {user?.role?.toLowerCase() === 'admin' && (
                   <Link
                     to="/manage-users"
                     className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
@@ -289,7 +289,8 @@ const Header = () => {
                     <span>המתכונים שלי</span>
                   </Link>
 
-                  {user.role === 'poster' && (
+                  {(user?.role?.toLowerCase() === 'poster' ||
+                    user?.role?.toLowerCase() === 'admin') && (
                     <Link
                       to="/manage-tags"
                       onClick={() => setIsMenuOpen(false)}
@@ -299,7 +300,7 @@ const Header = () => {
                     </Link>
                   )}
 
-                  {user.role === 'admin' && (
+                  {user?.role?.toLowerCase() === 'admin' && (
                     <Link
                       to="/manage-users"
                       onClick={() => setIsMenuOpen(false)}

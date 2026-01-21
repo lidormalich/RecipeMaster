@@ -37,9 +37,7 @@ const recipeSchema = new mongoose.Schema(
     },
     tags: [
       {
-        type: String, // globalId של התגית (למשל: TAG_TIME_10, TAG_VEGAN)
-        uppercase: true,
-        trim: true,
+        type: Number, // globalId של התגית (מספר ייחודי)
       },
     ],
     // שמירה על התאימות הלאחור - תגיות ישנות

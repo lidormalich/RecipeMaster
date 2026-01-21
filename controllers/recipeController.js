@@ -1,7 +1,44 @@
 const Recipe = require('../models/Recipe');
 const User = require('../models/User');
 const Cart = require('../models/Cart');
+const Tag = require('../models/Tag');
 const cloudinary = require('cloudinary').v2;
+
+// Helper function to populate tags from globalIds
+const populateTagsFromGlobalIds = async recipe => {
+  if (!recipe || !recipe.tags || recipe.tags.length === 0) {
+    return recipe;
+  }
+
+  // Get all tag categories that contain any of these globalIds
+  const tagCategories = await Tag.find({
+    'tags.globalId': {$in: recipe.tags},
+  });
+
+  // Build a map of globalId to tag info
+  const tagMap = {};
+  tagCategories.forEach(cat => {
+    cat.tags.forEach(tag => {
+      if (recipe.tags.includes(tag.globalId)) {
+        tagMap[tag.globalId] = {
+          _id: tag._id,
+          globalId: tag.globalId,
+          name: tag.he,
+          nameEn: tag.en,
+          category: cat.category,
+        };
+      }
+    });
+  });
+
+  // Convert recipe to object if needed and add populated tags
+  const recipeObj = recipe.toObject ? recipe.toObject() : {...recipe};
+  recipeObj.populatedTags = recipe.tags
+    .map(globalId => tagMap[globalId])
+    .filter(Boolean);
+
+  return recipeObj;
+};
 
 exports.getRecipes = async (req, res) => {
   try {
@@ -114,9 +151,10 @@ exports.getCart = async (req, res) => {
 
 exports.getRecipe = async (req, res) => {
   try {
-    const recipe = await Recipe.findOne({shortId: req.params.shortId})
-      .populate('author', 'name email')
-      .populate('tags', 'name');
+    const recipe = await Recipe.findOne({shortId: req.params.shortId}).populate(
+      'author',
+      'name email',
+    );
 
     if (!recipe || recipe.isDeleted) {
       return res.status(404).json({message: 'Recipe not found'});
@@ -129,7 +167,10 @@ exports.getRecipe = async (req, res) => {
       return res.status(403).json({message: 'Access denied'});
     }
 
-    res.json(recipe);
+    // Populate tags from globalIds
+    const recipeWithTags = await populateTagsFromGlobalIds(recipe);
+
+    res.json(recipeWithTags);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

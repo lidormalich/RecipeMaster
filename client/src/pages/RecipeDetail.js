@@ -13,6 +13,8 @@ const RecipeDetail = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchRecipe();
@@ -91,6 +93,26 @@ const RecipeDetail = () => {
     currentUser &&
     recipe &&
     (currentUser._id === recipe.author?._id || currentUser._id === recipe.author);
+
+  const deleteRecipe = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    setDeleting(true);
+    try {
+      await axios.delete(`/api/recipes/${shortId}`, {
+        headers: {Authorization: `Bearer ${token}`},
+      });
+      toast.success('המתכון נמחק בהצלחה');
+      navigate('/profile');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.msg || 'שגיאה במחיקת המתכון');
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
 
   if (loading) return <div className="text-center py-8">טוען...</div>;
   if (!recipe) return <div className="text-center py-8">המתכון לא נמצא</div>;
@@ -173,12 +195,20 @@ const RecipeDetail = () => {
 
         {/* כפתור עריכה - רק לבעלים */}
         {isOwner && (
-          <button
-            onClick={() => navigate(`/recipe/${shortId}/edit`)}
-            className="flex items-center space-x-2 space-x-reverse px-5 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
-            <span className="text-2xl">✏️</span>
-            <span>ערוך מתכון</span>
-          </button>
+          <>
+            <button
+              onClick={() => navigate(`/recipe/${shortId}/edit`)}
+              className="flex items-center space-x-2 space-x-reverse px-5 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-lg hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+              <span className="text-2xl">✏️</span>
+              <span>ערוך מתכון</span>
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center space-x-2 space-x-reverse px-5 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-lg hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+              <span className="text-2xl">🗑️</span>
+              <span>מחק מתכון</span>
+            </button>
+          </>
         )}
 
         {/* כפתור שיתוף - מינימליסטי בצד שמאל */}
@@ -289,16 +319,50 @@ const RecipeDetail = () => {
       )}
 
       {/* תגיות */}
-      {recipe.tags && recipe.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {recipe.tags.map(tag => (
-            <span
-              key={tag._id}
-              className="bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-200 transition-colors"
-            >
-              #{tag.name}
-            </span>
-          ))}
+      {recipe.populatedTags && recipe.populatedTags.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-2xl font-bold mb-4 flex items-center text-gray-800">
+            <span className="text-3xl mr-2">🏷️</span>
+            תגיות
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {recipe.populatedTags.map(tag => (
+              <button
+                key={tag.globalId}
+                onClick={() => navigate(`/?tag=${tag.globalId}`)}
+                className="bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-indigo-200 transition-colors cursor-pointer">
+                #{tag.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+            <h3 className="text-xl font-bold mb-4 text-gray-800">מחיקת מתכון</h3>
+            <p className="text-gray-600 mb-6">
+              האם אתה בטוח שברצונך למחוק את המתכון "{recipe.title}"?
+              <br />
+              <span className="text-red-500 text-sm">פעולה זו אינה ניתנת לביטול.</span>
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors">
+                ביטול
+              </button>
+              <button
+                onClick={deleteRecipe}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50">
+                {deleting ? 'מוחק...' : 'מחק'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

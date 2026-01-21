@@ -6,7 +6,11 @@ const checkRole = roles => {
       return res.status(401).json({message: 'No token, authorization denied'});
     }
 
-    if (!roles.includes(req.user.role)) {
+    // Case-insensitive role check
+    const userRole = req.user.role?.toLowerCase();
+    const allowedRoles = roles.map(r => r.toLowerCase());
+
+    if (!allowedRoles.includes(userRole)) {
       return res.status(403).json({message: 'Access denied'});
     }
 

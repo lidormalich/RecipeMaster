@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema(
         type: String,
       },
     ],
+    suspended: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

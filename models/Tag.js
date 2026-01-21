@@ -23,11 +23,9 @@ const TagSchema = new mongoose.Schema(
           trim: true,
         },
         globalId: {
-          type: String,
+          type: Number,
           required: true,
           unique: true,
-          uppercase: true,
-          trim: true,
         },
       },
     ],

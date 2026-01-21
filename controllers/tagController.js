@@ -20,18 +20,15 @@ exports.quickCreateTag = async (req, res) => {
       return res.status(400).json({message: 'Tag name is required'});
     }
 
-    // Generate globalId from Hebrew name
-    const globalId = generateGlobalId(tagName, category);
-
-    // Check if tag already exists in any category
+    // Check if tag already exists by name
     const existingCategory = await Tag.findOne({
-      'tags.globalId': globalId,
+      'tags.he': tagName.trim(),
     });
 
     if (existingCategory) {
       // Return the existing tag
       const existingTag = existingCategory.tags.find(
-        t => t.globalId === globalId
+        t => t.he === tagName.trim(),
       );
       return res.json({
         tag: existingTag,
@@ -39,6 +36,9 @@ exports.quickCreateTag = async (req, res) => {
         isNew: false,
       });
     }
+
+    // Generate globalId for new tag
+    const globalId = await generateGlobalId();
 
     // Find or create category
     let tagCategory = await Tag.findOne({category});
@@ -226,43 +226,18 @@ exports.recommendTags = async (req, res) => {
 
 // Helper functions
 
-function generateGlobalId(name, category) {
-  // Generate a unique ID based on name and category
-  const categoryPrefix = getCategoryPrefix(category);
-  const namePart = name
-    .trim()
-    .replace(/[^א-תa-zA-Z0-9]/g, '_')
-    .toUpperCase()
-    .substring(0, 20);
-  return `TAG_${categoryPrefix}_${namePart}`;
-}
-
-function getCategoryPrefix(category) {
-  const prefixes = {
-    'זמן הכנה': 'TIME',
-    'רמת קושי': 'DIFF',
-    'סוג מנה': 'DISH',
-    תזונה: 'DIET',
-    כשרות: 'KOSHER',
-    'סגנון מטבח': 'CUISINE',
-    'חומרי גלם': 'INGRED',
-    'שיטת בישול': 'METHOD',
-    'עונות שנה': 'SEASON',
-    חגים: 'HOLIDAY',
-    אירועים: 'EVENT',
-    'ארוחות ביום': 'MEAL',
-    מרקמים: 'TEXTURE',
-    טעמים: 'TASTE',
-    תקציב: 'BUDGET',
-    'כלי בישול': 'TOOL',
-    בריאות: 'HEALTH',
-    לילדים: 'KIDS',
-    'מקור המתכון': 'SOURCE',
-    'תוספות ליד': 'SIDE',
-    כללי: 'GENERAL',
-  };
-
-  return prefixes[category] || 'CUSTOM';
+async function generateGlobalId() {
+  // Generate a unique numeric ID
+  const allTags = await Tag.find();
+  let maxId = 99000; // Start custom tags from 99001
+  allTags.forEach(cat => {
+    cat.tags.forEach(tag => {
+      if (tag.globalId > maxId) {
+        maxId = tag.globalId;
+      }
+    });
+  });
+  return maxId + 1;
 }
 
 function transliterate(hebrewText) {

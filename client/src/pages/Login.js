@@ -41,7 +41,20 @@ const Login = () => {
       // טיפול בשגיאות מפורט
       if (err.response) {
         // השרת החזיר תשובה עם שגיאה
-        const errorMsg = err.response.data?.msg || err.response.data?.message || 'שגיאה לא ידועה';
+        let errorMsg =
+          err.response.data?.msg ||
+          err.response.data?.message ||
+          'שגיאה לא ידועה';
+
+        // Handle express-validator errors
+        if (
+          err.response.data?.errors &&
+          Array.isArray(err.response.data.errors)
+        ) {
+          errorMsg = err.response.data.errors
+            .map(error => error.msg)
+            .join(', ');
+        }
 
         if (err.response.status === 400) {
           toast.error(`שגיאה: ${errorMsg}`, {

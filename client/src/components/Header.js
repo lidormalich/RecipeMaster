@@ -1,41 +1,18 @@
 import React, {useState, useEffect} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
+import {useAuth} from '../context/AuthContext';
 
 const Header = () => {
-  const [user, setUser] = useState(null);
+  const {user, logout: authLogout} = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [cartItemsCount, setCartItemsCount] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      fetchUser();
-      fetchCartCount();
-    }
-  }, []);
-
-  const fetchUser = async () => {
-    try {
-      const res = await axios.get('/api/auth/me');
-      setUser(res.data);
-    } catch (err) {
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
-    }
-  };
-
   const fetchCartCount = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const res = await axios.get('/api/cart', {
-        headers: {Authorization: `Bearer ${token}`},
-      });
+      const res = await axios.get('/api/cart');
       setCartItemsCount(res.data?.items?.length || 0);
     } catch (err) {
       console.error('Error fetching cart count:', err);
@@ -43,14 +20,18 @@ const Header = () => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
-    setUser(null);
+    authLogout();
     setIsProfileOpen(false);
     navigate('/');
   };
 
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      fetchCartCount();
+    }
+  }, [user]);
 
   const handleSearch = e => {
     e.preventDefault();
@@ -102,33 +83,30 @@ const Header = () => {
             </form>
 
             {/* קישור AI Wizard */}
-            <Link
+            {/* <Link
               to="/ai-wizard"
               className="flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 group">
               <span className="text-xl group-hover:scale-110 transition-transform">
                 🤖
               </span>
               <span className="font-medium">מה לאכול?</span>
-            </Link>
+            </Link> */}
 
             {user ? (
               <>
-                {/* כפתור צור מתכון - בולט */}
                 <Link
                   to="/create-recipe"
                   className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-200 hover:scale-105">
                   ➕ צור מתכון
                 </Link>
 
-                {/* המתכונים שלי */}
                 <Link
                   to="/profile"
                   className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                   📖 המתכונים שלי
                 </Link>
-
-                {/* כפתורי ניהול למשתמשים מיוחדים */}
-                {user.role === 'poster' && (
+                {(user?.role?.toLowerCase() === 'poster' ||
+                  user?.role?.toLowerCase() === 'admin') && (
                   <Link
                     to="/manage-tags"
                     className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">

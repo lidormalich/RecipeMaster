@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {toast} from 'react-toastify';
 import ImageUpload from '../components/ImageUpload';
+import TagSelector from '../components/TagSelector';
 
 const CreateRecipe = () => {
   const [formData, setFormData] = useState({
@@ -12,10 +13,11 @@ const CreateRecipe = () => {
     instructions: '',
     mainImage: '',
     videoUrl: '',
-    tags: '',
+    tags: [],
     visibility: 'Public',
     allowComments: true,
   });
+  const [userRole, setUserRole] = useState(null);
   const [imageSelected, setImageSelected] = useState([]);
   const [load, setLoad] = useState(false);
   const navigate = useNavigate();
@@ -32,8 +34,30 @@ const CreateRecipe = () => {
     allowComments,
   } = formData;
 
+  useEffect(() => {
+    fetchUserRole();
+  }, []);
+
+  const fetchUserRole = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const res = await axios.get('/api/auth/me', {
+        headers: {Authorization: `Bearer ${token}`},
+      });
+      setUserRole(res.data.role);
+    } catch (err) {
+      console.error('Error fetching user role:', err);
+    }
+  };
+
   const onChange = e =>
     setFormData({...formData, [e.target.name]: e.target.value});
+
+  const handleTagsChange = newTags => {
+    setFormData({...formData, tags: newTags});
+  };
 
   const uploadImage = () => {
     return new Promise((resolve, reject) => {
@@ -75,7 +99,7 @@ const CreateRecipe = () => {
     try {
       let recipeData = {
         ...formData,
-        tags: tags.split(',').map(tag => tag.trim()),
+        tags: Array.isArray(tags) ? tags : [],
       };
       if (imageSelected.length > 0) {
         const imageUrl = await uploadImage();
@@ -162,15 +186,13 @@ const CreateRecipe = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            תגיות (מופרדות בפסיק)
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            תגיות
           </label>
-          <input
-            type="text"
-            name="tags"
-            value={tags}
-            onChange={onChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          <TagSelector
+            selectedTags={tags}
+            onTagsChange={handleTagsChange}
+            userRole={userRole}
           />
         </div>
         <div>

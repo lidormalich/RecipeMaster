@@ -37,6 +37,14 @@ const recipeSchema = new mongoose.Schema(
     },
     tags: [
       {
+        type: String, // globalId של התגית (למשל: TAG_TIME_10, TAG_VEGAN)
+        uppercase: true,
+        trim: true,
+      },
+    ],
+    // שמירה על התאימות הלאחור - תגיות ישנות
+    legacyTags: [
+      {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tag',
       },
@@ -54,6 +62,20 @@ const recipeSchema = new mongoose.Schema(
     allowComments: {
       type: Boolean,
       default: true,
+    },
+    prepTime: {
+      type: Number, // בדקות
+    },
+    servings: {
+      type: Number,
+    },
+    difficulty: {
+      type: String,
+      enum: ['קל', 'בינוני', 'מתקדם', ''],
+    },
+    dishType: {
+      type: String,
+      enum: ['ראשונה', 'עיקרית', 'קינוח', 'חטיף', ''],
     },
     isDeleted: {
       type: Boolean,

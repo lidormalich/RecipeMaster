@@ -1,8 +1,9 @@
 const Tag = require('../models/Tag');
 
+// Get all tags grouped by categories
 exports.getTags = async (req, res) => {
   try {
-    const tags = await Tag.find();
+    const tags = await Tag.find().sort({category: 1});
     res.json(tags);
   } catch (err) {
     console.error(err.message);
@@ -10,46 +11,322 @@ exports.getTags = async (req, res) => {
   }
 };
 
-exports.createTag = async (req, res) => {
-  const {name, category} = req.body;
+// Quick create tag - used when user types comma in tag input (Admin/Poster only)
+exports.quickCreateTag = async (req, res) => {
+  const {tagName, category = 'כללי'} = req.body;
 
   try {
-    let tag = await Tag.findOne({name});
-    if (tag) {
-      return res.status(400).json({message: 'Tag already exists'});
+    if (!tagName || tagName.trim() === '') {
+      return res.status(400).json({message: 'Tag name is required'});
     }
 
-    tag = new Tag({
-      name,
-      category,
+    // Generate globalId from Hebrew name
+    const globalId = generateGlobalId(tagName, category);
+
+    // Check if tag already exists in any category
+    const existingCategory = await Tag.findOne({
+      'tags.globalId': globalId,
     });
 
-    await tag.save();
-    res.json(tag);
+    if (existingCategory) {
+      // Return the existing tag
+      const existingTag = existingCategory.tags.find(
+        t => t.globalId === globalId
+      );
+      return res.json({
+        tag: existingTag,
+        category: existingCategory.category,
+        isNew: false,
+      });
+    }
+
+    // Find or create category
+    let tagCategory = await Tag.findOne({category});
+
+    if (!tagCategory) {
+      // Create new category
+      tagCategory = new Tag({
+        category,
+        categoryEn: transliterateCategory(category),
+        tags: [],
+      });
+    }
+
+    // Add new tag to category
+    const newTag = {
+      he: tagName.trim(),
+      en: transliterate(tagName),
+      globalId,
+    };
+
+    tagCategory.tags.push(newTag);
+    await tagCategory.save();
+
+    res.json({
+      tag: newTag,
+      category: tagCategory.category,
+      isNew: true,
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({message: 'Server error', error: err.message});
+  }
+};
+
+// Create a new category with tags
+exports.createTag = async (req, res) => {
+  const {category, categoryEn, tags} = req.body;
+
+  try {
+    // Check if category exists
+    let tagCategory = await Tag.findOne({category});
+
+    if (tagCategory) {
+      return res.status(400).json({message: 'Category already exists'});
+    }
+
+    tagCategory = new Tag({
+      category,
+      categoryEn: categoryEn || transliterateCategory(category),
+      tags: tags || [],
+    });
+
+    await tagCategory.save();
+    res.json(tagCategory);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 };
 
+// Update tag - can edit Hebrew/English name
 exports.updateTag = async (req, res) => {
   try {
-    const tag = await Tag.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    res.json(tag);
+    const {categoryId, tagId, he, en} = req.body;
+
+    const tagCategory = await Tag.findById(categoryId);
+    if (!tagCategory) {
+      return res.status(404).json({message: 'Category not found'});
+    }
+
+    const tag = tagCategory.tags.id(tagId);
+    if (!tag) {
+      return res.status(404).json({message: 'Tag not found'});
+    }
+
+    if (he) tag.he = he;
+    if (en) tag.en = en;
+
+    await tagCategory.save();
+    res.json(tagCategory);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 };
 
+// Delete tag
 exports.deleteTag = async (req, res) => {
   try {
-    await Tag.findByIdAndDelete(req.params.id);
-    res.json({message: 'Tag deleted'});
+    const {categoryId, tagId} = req.body;
+
+    const tagCategory = await Tag.findById(categoryId);
+    if (!tagCategory) {
+      return res.status(404).json({message: 'Category not found'});
+    }
+
+    tagCategory.tags = tagCategory.tags.filter(
+      t => t._id.toString() !== tagId
+    );
+
+    await tagCategory.save();
+    res.json({message: 'Tag deleted', category: tagCategory});
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 };
+
+// Search tags by query
+exports.searchTags = async (req, res) => {
+  try {
+    const {q} = req.query;
+
+    if (!q) {
+      return res.json([]);
+    }
+
+    const categories = await Tag.find({
+      $or: [
+        {'tags.he': {$regex: q, $options: 'i'}},
+        {'tags.en': {$regex: q, $options: 'i'}},
+        {category: {$regex: q, $options: 'i'}},
+      ],
+    });
+
+    // Flatten results
+    const results = [];
+    categories.forEach(cat => {
+      cat.tags.forEach(tag => {
+        if (
+          tag.he.toLowerCase().includes(q.toLowerCase()) ||
+          (tag.en && tag.en.toLowerCase().includes(q.toLowerCase()))
+        ) {
+          results.push({
+            ...tag.toObject(),
+            category: cat.category,
+          });
+        }
+      });
+    });
+
+    res.json(results);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// Get tag recommendations based on selected tags
+exports.recommendTags = async (req, res) => {
+  try {
+    const {selectedTags} = req.query; // comma-separated globalIds
+
+    if (!selectedTags) {
+      return res.json([]);
+    }
+
+    const selectedTagsArray = selectedTags.split(',');
+
+    // Find categories of selected tags
+    const categories = await Tag.find({
+      'tags.globalId': {$in: selectedTagsArray},
+    });
+
+    // Get all tags from these categories that are not already selected
+    const recommendations = [];
+    categories.forEach(cat => {
+      cat.tags.forEach(tag => {
+        if (!selectedTagsArray.includes(tag.globalId)) {
+          recommendations.push({
+            ...tag.toObject(),
+            category: cat.category,
+          });
+        }
+      });
+    });
+
+    // Limit to 5 recommendations
+    res.json(recommendations.slice(0, 5));
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// Helper functions
+
+function generateGlobalId(name, category) {
+  // Generate a unique ID based on name and category
+  const categoryPrefix = getCategoryPrefix(category);
+  const namePart = name
+    .trim()
+    .replace(/[^א-תa-zA-Z0-9]/g, '_')
+    .toUpperCase()
+    .substring(0, 20);
+  return `TAG_${categoryPrefix}_${namePart}`;
+}
+
+function getCategoryPrefix(category) {
+  const prefixes = {
+    'זמן הכנה': 'TIME',
+    'רמת קושי': 'DIFF',
+    'סוג מנה': 'DISH',
+    תזונה: 'DIET',
+    כשרות: 'KOSHER',
+    'סגנון מטבח': 'CUISINE',
+    'חומרי גלם': 'INGRED',
+    'שיטת בישול': 'METHOD',
+    'עונות שנה': 'SEASON',
+    חגים: 'HOLIDAY',
+    אירועים: 'EVENT',
+    'ארוחות ביום': 'MEAL',
+    מרקמים: 'TEXTURE',
+    טעמים: 'TASTE',
+    תקציב: 'BUDGET',
+    'כלי בישול': 'TOOL',
+    בריאות: 'HEALTH',
+    לילדים: 'KIDS',
+    'מקור המתכון': 'SOURCE',
+    'תוספות ליד': 'SIDE',
+    כללי: 'GENERAL',
+  };
+
+  return prefixes[category] || 'CUSTOM';
+}
+
+function transliterate(hebrewText) {
+  // Simple transliteration - can be enhanced
+  const mapping = {
+    א: 'a',
+    ב: 'b',
+    ג: 'g',
+    ד: 'd',
+    ה: 'h',
+    ו: 'v',
+    ז: 'z',
+    ח: 'ch',
+    ט: 't',
+    י: 'y',
+    כ: 'k',
+    ך: 'k',
+    ל: 'l',
+    מ: 'm',
+    ם: 'm',
+    נ: 'n',
+    ן: 'n',
+    ס: 's',
+    ע: 'a',
+    פ: 'p',
+    ף: 'f',
+    צ: 'tz',
+    ץ: 'tz',
+    ק: 'k',
+    ר: 'r',
+    ש: 'sh',
+    ת: 't',
+  };
+
+  return hebrewText
+    .split('')
+    .map(char => mapping[char] || char)
+    .join('');
+}
+
+function transliterateCategory(category) {
+  const translations = {
+    'זמן הכנה': 'Preparation Time',
+    'רמת קושי': 'Difficulty',
+    'סוג מנה': 'Dish Type',
+    תזונה: 'Nutrition',
+    כשרות: 'Kosher',
+    'סגנון מטבח': 'Cuisine Style',
+    'חומרי גלם': 'Ingredients',
+    'שיטת בישול': 'Cooking Method',
+    'עונות שנה': 'Seasons',
+    חגים: 'Holidays',
+    אירועים: 'Events',
+    'ארוחות ביום': 'Daily Meals',
+    מרקמים: 'Textures',
+    טעמים: 'Flavors',
+    תקציב: 'Budget',
+    'כלי בישול': 'Cooking Tools',
+    בריאות: 'Health',
+    לילדים: 'For Kids',
+    'מקור המתכון': 'Recipe Source',
+    'תוספות ליד': 'Side Dishes',
+    כללי: 'General',
+  };
+
+  return translations[category] || category;
+}

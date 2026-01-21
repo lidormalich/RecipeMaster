@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {toast} from 'react-toastify';
+import {useAuth} from '../context/AuthContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const Register = () => {
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const {login} = useAuth();
 
   const {name, email, password} = formData;
 
@@ -23,9 +25,9 @@ const Register = () => {
 
     try {
       const res = await axios.post('/api/auth/register', formData);
-      localStorage.setItem('token', res.data.token);
-      axios.defaults.headers.common['Authorization'] =
-        `Bearer ${res.data.token}`;
+
+      // Use AuthContext to handle login
+      login(res.data.token);
 
       toast.success('נרשמת בהצלחה! ברוך הבא למשפחת RecipeMaster 🎉', {
         icon: '✅',
@@ -33,17 +35,19 @@ const Register = () => {
 
       setTimeout(() => {
         navigate('/');
-        window.location.reload();
       }, 1000);
     } catch (err) {
       console.error(err);
 
       // טיפול בשגיאות מפורט
-      if (err.response) {
-        const errorMsg = err.response.data?.msg || err.response.data?.message || 'שגיאה לא ידועה';
+      if (err?.response) {
+        const errorMsg =
+          err.response.data?.msg ||
+          err.response.data?.message ||
+          'שגיאה לא ידועה';
 
-        if (err.response.status === 400) {
-          if (errorMsg && errorMsg.includes && errorMsg.includes('exist')) {
+        if (err?.response?.status === 400) {
+          if (errorMsg && errorMsg?.includes && errorMsg?.includes('exist')) {
             toast.error('המשתמש כבר קיים במערכת. נסה להתחבר', {
               icon: '👤',
             });
@@ -52,7 +56,7 @@ const Register = () => {
               icon: '⚠️',
             });
           }
-        } else if (err.response.status === 422) {
+        } else if (err?.response?.status === 422) {
           toast.error('נתונים לא תקינים. בדוק שכל השדות מלאים נכון', {
             icon: '📝',
           });
@@ -61,7 +65,7 @@ const Register = () => {
             icon: '🔴',
           });
         }
-      } else if (err.request) {
+      } else if (err?.request) {
         toast.error('לא ניתן להתחבר לשרת. בדוק את החיבור לאינטרנט', {
           icon: '🌐',
         });
@@ -77,7 +81,7 @@ const Register = () => {
 
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="text-3xl font-bold mb-8">הרשמה</h1>
+      <h1 className="text-3xl font-bold mb-8">הרשמה לאתר</h1>
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700">שם</label>

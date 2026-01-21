@@ -269,26 +269,77 @@ exports.getUserRecipes = async (req, res) => {
 
 exports.getRecommendations = async (req, res) => {
   try {
-    // Simple recommendation based on user's past recipes or tags
-    const userRecipes = await Recipe.find({
-      author: req.user.id,
-      isDeleted: false,
-    });
-    const userTags = [
-      ...new Set(userRecipes.flatMap(r => r.tags.map(t => t.toString()))),
-    ];
+    const {tags, count = 3} = req.query;
 
-    const recommendations = await Recipe.find({
-      isDeleted: false,
-      visibility: 'Public',
-      tags: {$in: userTags},
-      author: {$ne: req.user.id},
-    })
-      .populate('author', 'name')
-      .populate('tags', 'name')
-      .limit(10);
+    // If specific tags provided, use them
+    if (tags) {
+      const tagsArray = tags.split(',');
 
-    res.json(recommendations);
+      // Find recipes with matching tags
+      const recipes = await Recipe.aggregate([
+        {
+          $match: {
+            isDeleted: false,
+            visibility: 'Public',
+            tags: {$in: tagsArray},
+          },
+        },
+        {
+          $addFields: {
+            matchCount: {
+              $size: {
+                $setIntersection: ['$tags', tagsArray],
+              },
+            },
+          },
+        },
+        {$sort: {matchCount: -1, createdAt: -1}},
+        {$limit: parseInt(count)},
+      ]);
+
+      // Populate author info
+      await Recipe.populate(recipes, {path: 'author', select: 'name'});
+
+      return res.json(recipes);
+    }
+
+    // Otherwise, recommend based on user's past recipes
+    if (req.user) {
+      const userRecipes = await Recipe.find({
+        author: req.user.id,
+        isDeleted: false,
+      });
+
+      const userTags = [
+        ...new Set(userRecipes.flatMap(r => r.tags || [])),
+      ];
+
+      const recommendations = await Recipe.find({
+        isDeleted: false,
+        visibility: 'Public',
+        tags: {$in: userTags},
+        author: {$ne: req.user.id},
+      })
+        .populate('author', 'name')
+        .limit(parseInt(count));
+
+      return res.json(recommendations);
+    }
+
+    // Default: return random popular recipes
+    const randomRecipes = await Recipe.aggregate([
+      {
+        $match: {
+          isDeleted: false,
+          visibility: 'Public',
+        },
+      },
+      {$sample: {size: parseInt(count)}},
+    ]);
+
+    await Recipe.populate(randomRecipes, {path: 'author', select: 'name'});
+
+    res.json(randomRecipes);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

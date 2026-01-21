@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {toast} from 'react-toastify';
+import {useAuth} from '../context/AuthContext';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const Login = () => {
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const {login} = useAuth();
 
   const {email, password} = formData;
 
@@ -22,9 +24,9 @@ const Login = () => {
 
     try {
       const res = await axios.post('/api/auth/login', formData);
-      localStorage.setItem('token', res.data.token);
-      axios.defaults.headers.common['Authorization'] =
-        `Bearer ${res.data.token}`;
+
+      // Use AuthContext to handle login
+      login(res.data.token);
 
       toast.success('התחברת בהצלחה! ברוך הבא 🎉', {
         icon: '✅',
@@ -32,7 +34,6 @@ const Login = () => {
 
       setTimeout(() => {
         navigate('/');
-        window.location.reload();
       }, 1000);
     } catch (err) {
       console.error(err);

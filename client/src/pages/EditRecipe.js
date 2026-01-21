@@ -3,6 +3,7 @@ import {useParams, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {toast} from 'react-toastify';
 import ImageUpload from '../components/ImageUpload';
+import TagSelector from '../components/TagSelector';
 
 const EditRecipe = () => {
   const {shortId} = useParams();
@@ -14,7 +15,7 @@ const EditRecipe = () => {
     instructions: '',
     mainImage: '',
     videoUrl: '',
-    tags: '',
+    tags: [],
     visibility: 'Public',
     prepTime: '',
     dishType: '',
@@ -24,6 +25,7 @@ const EditRecipe = () => {
   const [imageSelected, setImageSelected] = useState([]);
   const [load, setLoad] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState(null);
 
   const {
     title,
@@ -61,6 +63,8 @@ const EditRecipe = () => {
         headers: {Authorization: `Bearer ${token}`},
       });
 
+      setUserRole(userRes.data.role);
+
       if (userRes.data._id !== recipe.author._id && userRes.data._id !== recipe.author) {
         toast.error('אין לך הרשאה לערוך מתכון זה', {icon: '🔒'});
         navigate(`/recipe/${shortId}`);
@@ -75,7 +79,7 @@ const EditRecipe = () => {
         instructions: recipe.instructions || '',
         mainImage: recipe.mainImage || '',
         videoUrl: recipe.videoUrl || '',
-        tags: recipe.tags?.map(t => t.name || t).join(', ') || '',
+        tags: Array.isArray(recipe.tags) ? recipe.tags : [],
         visibility: recipe.visibility || 'Public',
         prepTime: recipe.prepTime || '',
         dishType: recipe.dishType || '',
@@ -93,6 +97,10 @@ const EditRecipe = () => {
 
   const onChange = e =>
     setFormData({...formData, [e.target.name]: e.target.value});
+
+  const handleTagsChange = newTags => {
+    setFormData({...formData, tags: newTags});
+  };
 
   const uploadImage = () => {
     return new Promise((resolve, reject) => {
@@ -134,7 +142,7 @@ const EditRecipe = () => {
     try {
       let recipeData = {
         ...formData,
-        tags: tags.split(',').map(tag => tag.trim()).filter(t => t),
+        tags: Array.isArray(tags) ? tags : [],
       };
 
       if (imageSelected.length > 0) {
@@ -305,16 +313,13 @@ const EditRecipe = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            תגיות (מופרדות בפסיק)
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            תגיות
           </label>
-          <input
-            type="text"
-            name="tags"
-            value={tags}
-            onChange={onChange}
-            placeholder="איטלקי, פסטה, צמחוני"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          <TagSelector
+            selectedTags={tags}
+            onTagsChange={handleTagsChange}
+            userRole={userRole}
           />
         </div>
 

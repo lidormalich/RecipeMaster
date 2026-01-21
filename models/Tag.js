@@ -1,19 +1,44 @@
 const mongoose = require('mongoose');
 
-const tagSchema = new mongoose.Schema(
+const TagSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     category: {
       type: String,
+      required: true,
+      trim: true,
     },
+    categoryEn: {
+      type: String,
+      trim: true,
+    },
+    tags: [
+      {
+        he: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        en: {
+          type: String,
+          trim: true,
+        },
+        globalId: {
+          type: String,
+          required: true,
+          unique: true,
+          uppercase: true,
+          trim: true,
+        },
+      },
+    ],
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-module.exports = mongoose.model('Tag', tagSchema);
+// Index for faster queries
+TagSchema.index({category: 1});
+TagSchema.index({'tags.globalId': 1});
+
+module.exports = mongoose.model('Tag', TagSchema);

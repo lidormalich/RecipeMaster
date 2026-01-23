@@ -64,6 +64,10 @@ const Login = () => {
           toast.error('אימייל או סיסמה שגויים', {
             icon: '🔒',
           });
+        } else if (err.response.status === 403) {
+          toast.warning(errorMsg, {
+            icon: '🚫',
+          });
         } else if (err.response.status === 404) {
           toast.error('המשתמש לא קיים במערכת', {
             icon: '❌',

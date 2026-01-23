@@ -196,7 +196,8 @@ exports.recommendTags = async (req, res) => {
       return res.json([]);
     }
 
-    const selectedTagsArray = selectedTags.split(',');
+    // Convert to numbers for consistent comparison
+    const selectedTagsArray = selectedTags.split(',').map(id => Number(id));
 
     // Find categories of selected tags
     const categories = await Tag.find({
@@ -207,7 +208,7 @@ exports.recommendTags = async (req, res) => {
     const recommendations = [];
     categories.forEach(cat => {
       cat.tags.forEach(tag => {
-        if (!selectedTagsArray.includes(tag.globalId)) {
+        if (!selectedTagsArray.includes(Number(tag.globalId))) {
           recommendations.push({
             ...tag.toObject(),
             category: cat.category,

@@ -105,3 +105,59 @@ exports.googleAuthCallback = (req, res) => {
     res.redirect(`${process.env.CLIENT_URL}/?token=${token}`);
   });
 };
+
+// Get user favorites
+exports.getFavorites = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate({
+      path: 'favorites',
+      populate: {
+        path: 'author',
+        select: 'name',
+      },
+    });
+    res.json(user.favorites || []);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// Add recipe to favorites
+exports.addFavorite = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const recipeId = req.params.recipeId;
+
+    // Check if already in favorites
+    if (user.favorites.includes(recipeId)) {
+      return res.status(400).json({message: 'המתכון כבר נמצא במועדפים'});
+    }
+
+    user.favorites.push(recipeId);
+    await user.save();
+
+    res.json({message: 'המתכון נוסף למועדפים', favorites: user.favorites});
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// Remove recipe from favorites
+exports.removeFavorite = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const recipeId = req.params.recipeId;
+
+    user.favorites = user.favorites.filter(
+      fav => fav.toString() !== recipeId
+    );
+    await user.save();
+
+    res.json({message: 'המתכון הוסר מהמועדפים', favorites: user.favorites});
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};

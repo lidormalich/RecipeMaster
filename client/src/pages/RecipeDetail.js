@@ -15,6 +15,8 @@ const RecipeDetail = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [togglingFavorite, setTogglingFavorite] = useState(false);
 
   useEffect(() => {
     fetchRecipe();
@@ -30,8 +32,50 @@ const RecipeDetail = () => {
         headers: {Authorization: `Bearer ${token}`},
       });
       setCurrentUser(res.data);
+      // Check if recipe is in favorites
+      if (res.data.favorites && recipe) {
+        setIsFavorite(res.data.favorites.includes(recipe._id));
+      }
     } catch (err) {
       console.error('Error fetching user:', err);
+    }
+  };
+
+  // Check favorite status when recipe loads
+  useEffect(() => {
+    if (currentUser?.favorites && recipe?._id) {
+      setIsFavorite(currentUser.favorites.includes(recipe._id));
+    }
+  }, [currentUser, recipe]);
+
+  const toggleFavorite = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.warning('עליך להתחבר כדי להוסיף למועדפים');
+      navigate('/login');
+      return;
+    }
+
+    setTogglingFavorite(true);
+    try {
+      if (isFavorite) {
+        await axios.delete(`/api/auth/favorites/${recipe._id}`, {
+          headers: {Authorization: `Bearer ${token}`},
+        });
+        setIsFavorite(false);
+        toast.success('המתכון הוסר מהמועדפים');
+      } else {
+        await axios.post(`/api/auth/favorites/${recipe._id}`, {}, {
+          headers: {Authorization: `Bearer ${token}`},
+        });
+        setIsFavorite(true);
+        toast.success('המתכון נוסף למועדפים');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('שגיאה בעדכון המועדפים');
+    } finally {
+      setTogglingFavorite(false);
     }
   };
 
@@ -93,6 +137,14 @@ const RecipeDetail = () => {
     currentUser &&
     recipe &&
     (currentUser._id === recipe.author?._id || currentUser._id === recipe.author);
+
+  // Check if user can edit any recipe (Admin or PosterAdmin)
+  const canEditAny =
+    currentUser &&
+    (currentUser.role?.toLowerCase() === 'admin' ||
+      currentUser.role?.toLowerCase() === 'posteradmin');
+
+  const canEdit = isOwner || canEditAny;
 
   const deleteRecipe = async () => {
     const token = localStorage.getItem('token');
@@ -193,8 +245,8 @@ const RecipeDetail = () => {
           <span>{addingToCart ? 'מוסיף...' : 'הוסף מרכיבים לסל'}</span>
         </button>
 
-        {/* כפתור עריכה - רק לבעלים */}
-        {isOwner && (
+        {/* כפתור עריכה - לבעלים או Admin/PosterAdmin */}
+        {canEdit && (
           <>
             <button
               onClick={() => navigate(`/recipe/${shortId}/edit`)}
@@ -211,24 +263,55 @@ const RecipeDetail = () => {
           </>
         )}
 
-        {/* כפתור שיתוף - מינימליסטי בצד שמאל */}
-        <button
-          onClick={() => setShowShareModal(true)}
-          className="mr-auto w-11 h-11 bg-white hover:bg-gray-50 rounded-full shadow-md hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center group border border-gray-200"
-          title="שתף מתכון">
-          <svg
-            className="w-5 h-5 text-gray-700 group-hover:text-indigo-600 transition-colors duration-200"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-            />
-          </svg>
-        </button>
+        {/* כפתורים מינימליסטיים בצד שמאל */}
+        <div className="mr-auto flex items-center gap-2">
+          {/* כפתור מועדפים */}
+          {currentUser && (
+            <button
+              onClick={toggleFavorite}
+              disabled={togglingFavorite}
+              className={`w-11 h-11 rounded-full shadow-md hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center group border ${
+                isFavorite
+                  ? 'bg-red-50 border-red-200 hover:bg-red-100'
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
+              } disabled:opacity-50`}
+              title={isFavorite ? 'הסר מהמועדפים' : 'הוסף למועדפים'}>
+              <svg
+                className={`w-5 h-5 transition-colors duration-200 ${
+                  isFavorite ? 'text-red-500' : 'text-gray-400 group-hover:text-red-400'
+                }`}
+                fill={isFavorite ? 'currentColor' : 'none'}
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+            </button>
+          )}
+
+          {/* כפתור שיתוף */}
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="w-11 h-11 bg-white hover:bg-gray-50 rounded-full shadow-md hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center group border border-gray-200"
+            title="שתף מתכון">
+            <svg
+              className="w-5 h-5 text-gray-700 group-hover:text-indigo-600 transition-colors duration-200"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* כותרת */}

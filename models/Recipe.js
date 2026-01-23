@@ -57,10 +57,6 @@ const recipeSchema = new mongoose.Schema(
       enum: ['Private', 'Shared', 'Public'],
       default: 'Public',
     },
-    allowComments: {
-      type: Boolean,
-      default: true,
-    },
     prepTime: {
       type: Number, // בדקות
     },

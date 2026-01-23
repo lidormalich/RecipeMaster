@@ -22,6 +22,11 @@ router.post('/login', authController.login);
 
 router.get('/me', auth, authController.getMe);
 
+// Favorites routes
+router.get('/favorites', auth, authController.getFavorites);
+router.post('/favorites/:recipeId', auth, authController.addFavorite);
+router.delete('/favorites/:recipeId', auth, authController.removeFavorite);
+
 router.get(
   '/google',
   passport.authenticate('google', {scope: ['profile', 'email']}),

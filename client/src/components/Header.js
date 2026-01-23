@@ -94,19 +94,31 @@ const Header = () => {
 
             {user ? (
               <>
-                <Link
-                  to="/create-recipe"
-                  className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-200 hover:scale-105">
-                  ➕ צור מתכון
-                </Link>
+                {/* כפתור יצירת מתכון - רק ל-Poster, PosterAdmin, Admin */}
+                {['poster', 'posteradmin', 'admin'].includes(
+                  user?.role?.toLowerCase(),
+                ) && (
+                  <Link
+                    to="/create-recipe"
+                    className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-200 hover:scale-105">
+                    ➕ צור מתכון
+                  </Link>
+                )}
 
                 <Link
                   to="/profile"
                   className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                   📖 המתכונים שלי
                 </Link>
-                {(user?.role?.toLowerCase() === 'poster' ||
-                  user?.role?.toLowerCase() === 'admin') && (
+                <Link
+                  to="/favorites"
+                  className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
+                  ❤️ מועדפים
+                </Link>
+                {/* ניהול תגיות - רק ל-Poster, PosterAdmin, Admin */}
+                {['poster', 'posteradmin', 'admin'].includes(
+                  user?.role?.toLowerCase(),
+                ) && (
                   <Link
                     to="/manage-tags"
                     className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
@@ -114,6 +126,7 @@ const Header = () => {
                   </Link>
                 )}
 
+                {/* ניהול משתמשים - רק ל-Admin */}
                 {user?.role?.toLowerCase() === 'admin' && (
                   <Link
                     to="/manage-users"
@@ -274,13 +287,18 @@ const Header = () => {
 
               {user ? (
                 <>
-                  <Link
-                    to="/create-recipe"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 font-semibold">
-                    <span>➕</span>
-                    <span>צור מתכון</span>
-                  </Link>
+                  {/* כפתור יצירת מתכון - רק ל-Poster, PosterAdmin, Admin */}
+                  {['poster', 'posteradmin', 'admin'].includes(
+                    user?.role?.toLowerCase(),
+                  ) && (
+                    <Link
+                      to="/create-recipe"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 font-semibold">
+                      <span>➕</span>
+                      <span>צור מתכון</span>
+                    </Link>
+                  )}
                   <Link
                     to="/profile"
                     onClick={() => setIsMenuOpen(false)}
@@ -288,9 +306,18 @@ const Header = () => {
                     <span>📖</span>
                     <span>המתכונים שלי</span>
                   </Link>
+                  <Link
+                    to="/favorites"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                    <span>❤️</span>
+                    <span>מועדפים</span>
+                  </Link>
 
-                  {(user?.role?.toLowerCase() === 'poster' ||
-                    user?.role?.toLowerCase() === 'admin') && (
+                  {/* ניהול תגיות - רק ל-Poster, PosterAdmin, Admin */}
+                  {['poster', 'posteradmin', 'admin'].includes(
+                    user?.role?.toLowerCase(),
+                  ) && (
                     <Link
                       to="/manage-tags"
                       onClick={() => setIsMenuOpen(false)}
@@ -300,6 +327,7 @@ const Header = () => {
                     </Link>
                   )}
 
+                  {/* ניהול משתמשים - רק ל-Admin */}
                   {user?.role?.toLowerCase() === 'admin' && (
                     <Link
                       to="/manage-users"

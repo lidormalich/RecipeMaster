@@ -19,10 +19,11 @@ const ManageTags = () => {
   const [deleteModal, setDeleteModal] = useState({open: false, categoryId: null, tagId: null, tagName: ''});
   const [deleting, setDeleting] = useState(false);
 
-  const isAdmin = user?.role?.toLowerCase() === 'admin';
-  const canManage =
-    user?.role?.toLowerCase() === 'admin' ||
-    user?.role?.toLowerCase() === 'poster';
+  const userRole = user?.role?.toLowerCase();
+  const isAdmin = userRole === 'admin';
+  const isPosterAdmin = userRole === 'posteradmin';
+  const canManage = isAdmin || isPosterAdmin || userRole === 'poster';
+  const canEditAll = isAdmin || isPosterAdmin; // יכולים לערוך ולמחוק תגיות
 
   useEffect(() => {
     if (!canManage) {
@@ -191,8 +192,8 @@ const ManageTags = () => {
         </form>
       </div>
 
-      {/* הוספת קטגוריה חדשה - רק לאדמין */}
-      {isAdmin && (
+      {/* הוספת קטגוריה חדשה - לאדמין ופוסטר-אדמין */}
+      {canEditAll && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">הוספת קטגוריה חדשה</h2>
           <form onSubmit={addCategory} className="flex gap-3">
@@ -262,7 +263,7 @@ const ManageTags = () => {
                           <span className="text-indigo-800 text-sm">
                             {tag.he}
                           </span>
-                          {isAdmin && (
+                          {canEditAll && (
                             <div className="hidden group-hover:flex items-center gap-1">
                               <button
                                 onClick={() => {

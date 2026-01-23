@@ -133,8 +133,10 @@ const TagSelector = ({selectedTags, onTagsChange, userRole}) => {
       }
 
       // Add tag to selected
-      if (!selectedTags.includes(tag.globalId)) {
-        onTagsChange([...selectedTags, tag.globalId]);
+      const numericId = Number(tag.globalId);
+      const currentTags = selectedTags.map(id => Number(id));
+      if (!currentTags.includes(numericId)) {
+        onTagsChange([...selectedTags, numericId]);
       }
 
       // Refresh tags list
@@ -151,12 +153,16 @@ const TagSelector = ({selectedTags, onTagsChange, userRole}) => {
   };
 
   const handleTagSelect = globalId => {
-    if (selectedTags.includes(globalId)) {
+    // Ensure globalId is a number for consistent comparison
+    const numericId = Number(globalId);
+    const currentTags = selectedTags.map(id => Number(id));
+
+    if (currentTags.includes(numericId)) {
       // Remove tag
-      onTagsChange(selectedTags.filter(id => id !== globalId));
+      onTagsChange(selectedTags.filter(id => Number(id) !== numericId));
     } else {
       // Add tag
-      onTagsChange([...selectedTags, globalId]);
+      onTagsChange([...selectedTags, numericId]);
     }
 
     setSearchQuery('');
@@ -165,18 +171,22 @@ const TagSelector = ({selectedTags, onTagsChange, userRole}) => {
   };
 
   const handleRecommendationClick = globalId => {
-    if (!selectedTags.includes(globalId)) {
-      onTagsChange([...selectedTags, globalId]);
+    const numericId = Number(globalId);
+    const currentTags = selectedTags.map(id => Number(id));
+    if (!currentTags.includes(numericId)) {
+      onTagsChange([...selectedTags, numericId]);
     }
   };
 
   const removeTag = globalId => {
-    onTagsChange(selectedTags.filter(id => id !== globalId));
+    const numericId = Number(globalId);
+    onTagsChange(selectedTags.filter(id => Number(id) !== numericId));
   };
 
   const getTagDisplay = globalId => {
+    const numericId = Number(globalId);
     for (const category of allTags) {
-      const tag = category.tags.find(t => t.globalId === globalId);
+      const tag = category.tags.find(t => Number(t.globalId) === numericId);
       if (tag) {
         return {he: tag.he, category: category.category};
       }
@@ -275,7 +285,7 @@ const TagSelector = ({selectedTags, onTagsChange, userRole}) => {
                 </div>
                 <div className="space-y-1">
                   {category.tags.map(tag => {
-                    const isSelected = selectedTags.includes(tag.globalId);
+                    const isSelected = selectedTags.map(id => Number(id)).includes(Number(tag.globalId));
                     return (
                       <button
                         key={tag.globalId}

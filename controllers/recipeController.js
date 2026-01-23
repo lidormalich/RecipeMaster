@@ -64,10 +64,13 @@ exports.getRecipes = async (req, res) => {
 
     const recipes = await Recipe.find(query)
       .populate('author', 'name')
-      .populate('tags', 'name')
       .sort({createdAt: -1});
 
-    res.json(recipes);
+    const recipesWithTags = await Promise.all(
+      recipes.map(recipe => populateTagsFromGlobalIds(recipe)),
+    );
+
+    res.json(recipesWithTags);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
@@ -188,7 +191,6 @@ exports.createRecipe = async (req, res) => {
     videoUrl,
     tags,
     visibility,
-    allowComments,
   } = req.body;
 
   try {
@@ -201,7 +203,7 @@ exports.createRecipe = async (req, res) => {
         try {
           const parsed = JSON.parse(tags);
           if (Array.isArray(parsed)) {
-            processedTags = parsed.filter(t => t && t.trim() !== '');
+            processedTags = parsed.filter(t => t && String(t).trim() !== '');
           }
         } catch (e) {
           processedTags = tags
@@ -210,7 +212,7 @@ exports.createRecipe = async (req, res) => {
             .filter(t => t !== '');
         }
       } else if (Array.isArray(tags)) {
-        processedTags = tags.filter(t => t && t.trim() !== '');
+        processedTags = tags.filter(t => t && String(t).trim() !== '');
       }
     }
 
@@ -226,7 +228,6 @@ exports.createRecipe = async (req, res) => {
       tags: processedTags,
       author: req.user.id,
       visibility,
-      allowComments,
     });
 
     await recipe.save();
@@ -240,6 +241,12 @@ exports.createRecipe = async (req, res) => {
   }
 };
 
+// Helper to check if user can edit any recipe
+const canEditAnyRecipe = userRole => {
+  const role = userRole?.toLowerCase();
+  return role === 'admin' || role === 'posteradmin';
+};
+
 exports.updateRecipe = async (req, res) => {
   try {
     let recipe = await Recipe.findOne({shortId: req.params.shortId});
@@ -248,7 +255,11 @@ exports.updateRecipe = async (req, res) => {
       return res.status(404).json({message: 'Recipe not found'});
     }
 
-    if (recipe.author.toString() !== req.user.id) {
+    // Allow edit if: owner OR Admin/PosterAdmin
+    const isOwner = recipe.author.toString() === req.user.id;
+    const hasEditPermission = canEditAnyRecipe(req.user.role);
+
+    if (!isOwner && !hasEditPermission) {
       return res.status(403).json({message: 'Access denied'});
     }
 
@@ -277,7 +288,11 @@ exports.deleteRecipe = async (req, res) => {
       return res.status(404).json({message: 'Recipe not found'});
     }
 
-    if (recipe.author.toString() !== req.user.id) {
+    // Allow delete if: owner OR Admin/PosterAdmin
+    const isOwner = recipe.author.toString() === req.user.id;
+    const hasDeletePermission = canEditAnyRecipe(req.user.role);
+
+    if (!isOwner && !hasDeletePermission) {
       return res.status(403).json({message: 'Access denied'});
     }
 
@@ -351,9 +366,7 @@ exports.getRecommendations = async (req, res) => {
         isDeleted: false,
       });
 
-      const userTags = [
-        ...new Set(userRecipes.flatMap(r => r.tags || [])),
-      ];
+      const userTags = [...new Set(userRecipes.flatMap(r => r.tags || []))];
 
       const recommendations = await Recipe.find({
         isDeleted: false,

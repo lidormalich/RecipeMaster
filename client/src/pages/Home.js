@@ -62,7 +62,9 @@ const Home = () => {
       {tag && activeTagName ? (
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <h1 className="text-3xl font-bold">מתכונים עם התגית: #{activeTagName}</h1>
+            <h1 className="text-3xl font-bold">
+              מתכונים עם התגית: #{activeTagName}
+            </h1>
             <button
               onClick={clearTagFilter}
               className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-gray-300 transition-colors">
@@ -72,7 +74,10 @@ const Home = () => {
           <p className="text-gray-600">נמצאו {recipes.length} מתכונים</p>
         </div>
       ) : (
-        <h1 className="text-3xl font-bold mb-8">המתכונים האחרונים</h1>
+        <div className="text-center p-6 mb-8 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+          <h1 className="text-4xl font-bold text-gray-800">המתכונים האחרונים</h1>
+          <p className="text-lg text-gray-600 mt-2">יש לנו להציע לך {recipes.length} מתכונים</p>
+        </div>
       )}
 
       {recipes.length === 0 ? (

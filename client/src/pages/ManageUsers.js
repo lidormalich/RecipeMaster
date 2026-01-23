@@ -142,6 +142,8 @@ const ManageUsers = () => {
     switch (role) {
       case 'Admin':
         return 'bg-red-100 text-red-800';
+      case 'PosterAdmin':
+        return 'bg-purple-100 text-purple-800';
       case 'Poster':
         return 'bg-blue-100 text-blue-800';
       default:
@@ -218,7 +220,74 @@ const ManageUsers = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">ניהול משתמשים</h1>
+      <h1 className="text-3xl font-bold mb-6">ניהול משתמשים</h1>
+
+      {/* תיבת הסבר על התפקידים */}
+      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-8 border border-indigo-100">
+        <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span>📋</span>
+          מדריך תפקידים והרשאות
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* User */}
+          <div className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-gray-400">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                User
+              </span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• צפייה במתכונים</li>
+              <li>• הוספה למועדפים</li>
+              <li>• הוספה לסל קניות</li>
+            </ul>
+          </div>
+
+          {/* Poster */}
+          <div className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-blue-400">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                Poster
+              </span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• כל הרשאות User</li>
+              <li>• יצירת מתכונים</li>
+              <li>• עריכת המתכונים שלו</li>
+              <li>• הוספת תגיות</li>
+            </ul>
+          </div>
+
+          {/* PosterAdmin */}
+          <div className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-purple-400">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                PosterAdmin
+              </span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• כל הרשאות Poster</li>
+              <li>• עריכה/מחיקת כל מתכון</li>
+              <li>• ניהול תגיות מלא</li>
+            </ul>
+          </div>
+
+          {/* Admin */}
+          <div className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-red-400">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                Admin
+              </span>
+            </div>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• כל הרשאות PosterAdmin</li>
+              <li>• ניהול משתמשים</li>
+              <li>• השעיה/מחיקת משתמשים</li>
+              <li>• שינוי תפקידים</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden overflow-x-auto">
         <table className="w-full min-w-[800px]">
@@ -293,6 +362,7 @@ const ManageUsers = () => {
                         className="px-2 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50">
                         <option value="User">User</option>
                         <option value="Poster">Poster</option>
+                        <option value="PosterAdmin">PosterAdmin</option>
                         <option value="Admin">Admin</option>
                       </select>
                       {u.suspended ? (

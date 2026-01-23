@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['Admin', 'Poster', 'User'],
+      enum: ['Admin', 'PosterAdmin', 'Poster', 'User'],
       default: 'User',
     },
     permissions: [
@@ -34,6 +34,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Recipe',
+      },
+    ],
   },
   {
     timestamps: true,

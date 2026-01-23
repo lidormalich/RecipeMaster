@@ -1,9 +1,16 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 
 const ImageUpload = ({onImageSelect, currentImage, loading}) => {
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState(currentImage || null);
   const inputRef = useRef(null);
+
+  // Update preview when currentImage changes (for edit mode)
+  useEffect(() => {
+    if (currentImage && !preview) {
+      setPreview(currentImage);
+    }
+  }, [currentImage]);
 
   const handleDrag = e => {
     e.preventDefault();

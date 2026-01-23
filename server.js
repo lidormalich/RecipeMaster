@@ -39,18 +39,18 @@ mongoose
     console.log('MongoDB connected ✅');
 
     // Auto-seed tags on first run
-    try {
-      const Tag = require('./models/Tag');
-      const existingTags = await Tag.countDocuments();
+    // try {
+    //   const Tag = require('./models/Tag');
+    //   const existingTags = await Tag.countDocuments();
 
-      if (existingTags === 0) {
-        console.log('🌱 First run detected. No tags found - please run: npm run seed:tags');
-      } else {
-        console.log(`✅ Tags loaded: ${existingTags} categories available`);
-      }
-    } catch (err) {
-      console.log('ℹ️  Tag check skipped');
-    }
+    //   if (existingTags === 0) {
+    //     console.log('🌱 First run detected. No tags found - please run: npm run seed:tags');
+    //   } else {
+    //     console.log(`✅ Tags loaded: ${existingTags} categories available`);
+    //   }
+    // } catch (err) {
+    //   console.log('ℹ️  Tag check skipped');
+    // }
   })
   .catch(err => console.log(err));
 

@@ -5,6 +5,60 @@ import {toast} from 'react-toastify';
 import ImageUpload from '../components/ImageUpload';
 import TagSelector from '../components/TagSelector';
 
+// פונקציה לדחיסת תמונה
+const compressImage = (file, maxWidth = 1920, maxHeight = 1080, quality = 0.8) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = event => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let {width, height} = img;
+
+        // חישוב הגודל החדש תוך שמירה על יחס
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = (width * maxHeight) / height;
+          height = maxHeight;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          blob => {
+            if (blob) {
+              // יצירת קובץ חדש מה-blob
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              console.log(
+                `Image compressed: ${(file.size / 1024 / 1024).toFixed(2)}MB -> ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`,
+              );
+              resolve(compressedFile);
+            } else {
+              reject(new Error('Failed to compress image'));
+            }
+          },
+          'image/jpeg',
+          quality,
+        );
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+  });
+};
+
 const CreateRecipe = () => {
   const [formData, setFormData] = useState({
     title: '',
@@ -59,31 +113,53 @@ const CreateRecipe = () => {
     setFormData({...formData, tags: newTags});
   };
 
-  const uploadImage = () => {
-    return new Promise((resolve, reject) => {
-      setLoad(true);
-      const formData = new FormData();
-      formData.append('image', imageSelected[0]);
-
+  const uploadImage = async () => {
+    setLoad(true);
+    try {
       const token = localStorage.getItem('token');
+      const originalFile = imageSelected[0];
 
-      axios
-        .post('/api/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then(response => {
-          setLoad(false);
-          resolve(response.data.url);
-        })
-        .catch(e => {
-          console.log(e);
-          setLoad(false);
-          reject(e);
-        });
-    });
+      console.log(
+        `Original image size: ${(originalFile.size / 1024 / 1024).toFixed(2)}MB`,
+      );
+
+      // דחיסת התמונה לפני העלאה
+      let fileToUpload = originalFile;
+      try {
+        // דוחס תמונות מעל 1MB או עם רזולוציה גבוהה
+        if (originalFile.size > 1024 * 1024 || originalFile.type.startsWith('image/')) {
+          fileToUpload = await compressImage(originalFile, 1920, 1080, 0.85);
+        }
+      } catch (compressError) {
+        console.warn('Image compression failed, using original:', compressError);
+        fileToUpload = originalFile;
+      }
+
+      // בדיקה שהקובץ לא גדול מדי גם אחרי דחיסה
+      if (fileToUpload.size > 5 * 1024 * 1024) {
+        // ניסיון דחיסה נוספת עם איכות נמוכה יותר
+        console.log('File still too large, trying more compression...');
+        fileToUpload = await compressImage(originalFile, 1280, 720, 0.6);
+      }
+
+      const formData = new FormData();
+      formData.append('image', fileToUpload);
+
+      const response = await axios.post('/api/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setLoad(false);
+      return response.data.url;
+    } catch (e) {
+      console.error('Upload error:', e);
+      setLoad(false);
+      toast.error('שגיאה בהעלאת התמונה');
+      throw e;
+    }
   };
 
   const onSubmit = async e => {

@@ -17,7 +17,7 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
     // Accept images only
@@ -31,9 +31,28 @@ const upload = multer({
 // @route   POST /api/upload
 // @desc    Upload image to Cloudinary
 // @access  Private
-router.post('/', auth, upload.single('image'), async (req, res) => {
+router.post('/', auth, (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      console.log('=== MULTER ERROR ===', err.message);
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({msg: 'File too large. Max size is 5MB'});
+        }
+        return res.status(400).json({msg: `Upload error: ${err.message}`});
+      }
+      return res.status(400).json({msg: err.message});
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
+    console.log('=== UPLOAD REQUEST STARTED ===');
+    console.log('User:', req.user?.id);
+    console.log('Headers content-type:', req.headers['content-type']);
+
     if (!req.file) {
+      console.log('ERROR: No file in request');
       return res.status(400).json({msg: 'No file uploaded'});
     }
 
@@ -41,12 +60,19 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       originalname: req.file.originalname,
       mimetype: req.file.mimetype,
       size: req.file.size,
-      bufferLength: req.file.buffer.length,
+      bufferLength: req.file.buffer?.length || 0,
+    });
+
+    // Check Cloudinary config
+    console.log('Cloudinary config check:', {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING',
+      api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'MISSING',
+      api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING',
     });
 
     // Validate file size
-    if (req.file.size > 5 * 1024 * 1024) {
-      return res.status(400).json({msg: 'File too large. Max size is 5MB'});
+    if (req.file.size > 10 * 1024 * 1024) {
+      return res.status(400).json({msg: 'File too large. Max size is 10MB'});
     }
 
     console.log('Starting upload to Cloudinary...');
@@ -70,6 +96,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
       });
     } catch (cloudinaryError) {
       console.error('First upload attempt failed:', cloudinaryError.message);
+      console.error('Full Cloudinary error:', JSON.stringify(cloudinaryError, null, 2));
 
       // Option 2: If first attempt fails, try without mimetype validation
       try {
@@ -94,7 +121,8 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
           publicId: result.public_id,
         });
       } catch (secondError) {
-        console.error('Second upload attempt also failed:', secondError);
+        console.error('Second upload attempt also failed:', secondError.message);
+        console.error('Full second error:', JSON.stringify(secondError, null, 2));
         throw cloudinaryError; // Throw the original error
       }
     }

@@ -56,10 +56,15 @@ const Header = () => {
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex justify-between items-center h-16 lg:h-20">
           {/* לוגו */}
-          <Link
-            to="/"
-            className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent hover:from-indigo-300 hover:to-purple-400 transition-all duration-300">
-            🍳 RecipeMaster
+          <Link to="/" className="flex items-center space-x-3 space-x-reverse">
+            <img
+              src="https://raw.githubusercontent.com/lidormalich/RecipeMaster/refs/heads/main/client/public/logo192.png"
+              alt="RecipeMaster Logo"
+              className="h-10 w-10 lg:h-12 lg:w-12"
+            />
+            <span className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent hover:from-indigo-300 hover:to-purple-400 transition-all duration-300">
+              RecipeMaster
+            </span>
           </Link>
 
           {/* תפריט דסקטופ */}
@@ -107,12 +112,12 @@ const Header = () => {
 
                 <Link
                   to="/profile"
-                  className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
+                  className="px-1 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                   📖 המתכונים שלי
                 </Link>
                 <Link
                   to="/favorites"
-                  className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
+                  className="px-1 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                   ❤️ מועדפים
                 </Link>
                 {/* ניהול תגיות - רק ל-Poster, PosterAdmin, Admin */}
@@ -121,7 +126,7 @@ const Header = () => {
                 ) && (
                   <Link
                     to="/manage-tags"
-                    className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
+                    className="px-1 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                     🏷️ ניהול תגיות
                   </Link>
                 )}
@@ -130,7 +135,7 @@ const Header = () => {
                 {user?.role?.toLowerCase() === 'admin' && (
                   <Link
                     to="/manage-users"
-                    className="px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
+                    className="px-1 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                     👥 ניהול משתמשים
                   </Link>
                 )}

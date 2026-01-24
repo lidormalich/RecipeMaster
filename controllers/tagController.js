@@ -363,7 +363,7 @@ ${JSON.stringify(existingTagsJSON, null, 2)}
 דוגמה נכונה (עם IDs מהרשימה):
 {"tags": [{"id": 1003, "name": "30-45 דקות", "category": "זמן הכנה"}, {"id": 2002, "name": "קל", "category": "רמת קושי"}]}`;
 
-    console.log('Sending request to Groq...');
+    // console.log('Sending request to Groq...');
 
     const completion = await groq.chat.completions.create({
       messages: [
@@ -378,14 +378,14 @@ ${JSON.stringify(existingTagsJSON, null, 2)}
     });
 
     const responseText = completion.choices[0]?.message?.content || '';
-    console.log('Groq raw response:', responseText);
+    // console.log('Groq raw response:', responseText);
 
     // Parse the JSON response
     let suggestedTags = [];
     try {
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        console.log('Extracted JSON:', jsonMatch[0]);
+        // console.log('Extracted JSON:', jsonMatch[0]);
         const parsed = JSON.parse(jsonMatch[0]);
 
         if (Array.isArray(parsed.tags)) {

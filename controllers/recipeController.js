@@ -3,6 +3,7 @@ const User = require('../models/User');
 const Cart = require('../models/Cart');
 const Tag = require('../models/Tag');
 const cloudinary = require('cloudinary').v2;
+const Groq = require('groq-sdk');
 
 // Helper function to populate tags from globalIds
 const populateTagsFromGlobalIds = async recipe => {
@@ -514,5 +515,301 @@ exports.getRecommendations = async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
+  }
+};
+
+// ========== AI SMART ASSISTANT ==========
+
+// Cache for recipes summary (to avoid sending full recipes to AI)
+let recipesCache = {
+  data: null,
+  summary: null,
+  lastUpdated: null,
+  TTL: 5 * 60 * 1000, // 5 minutes
+};
+
+async function getRecipesSummary() {
+  const now = Date.now();
+
+  if (recipesCache.data && recipesCache.lastUpdated && now - recipesCache.lastUpdated < recipesCache.TTL) {
+    return recipesCache;
+  }
+
+  // Get all public recipes with their tags populated
+  const recipes = await Recipe.find({isDeleted: false, visibility: 'Public'})
+    .select('_id shortId title description tags')
+    .lean();
+
+  // Get all tags for name lookup
+  const tagCategories = await Tag.find().lean();
+  const tagMap = {};
+  tagCategories.forEach(cat => {
+    cat.tags.forEach(tag => {
+      tagMap[tag.globalId] = tag.he;
+    });
+  });
+
+  // Build compact summary for AI
+  const summary = recipes.map(r => ({
+    id: r.shortId,
+    title: r.title,
+    desc: r.description?.substring(0, 100) || '',
+    tags: (r.tags || []).map(t => tagMap[t] || '').filter(Boolean).join(', '),
+  }));
+
+  recipesCache = {
+    data: recipes,
+    summary,
+    lastUpdated: now,
+    TTL: 5 * 60 * 1000,
+  };
+
+  return recipesCache;
+}
+
+// AI Smart Recommendation
+exports.aiRecommend = async (req, res) => {
+  try {
+    const {query, mode = 'chat', ingredients = []} = req.body;
+
+    if (!query && mode !== 'surprise') {
+      return res.status(400).json({message: 'Query is required'});
+    }
+
+    const cache = await getRecipesSummary();
+
+    if (cache.summary.length === 0) {
+      return res.json({recipes: [], message: 'אין מתכונים במערכת'});
+    }
+
+    // Mode: Surprise - return random recipes
+    if (mode === 'surprise') {
+      const shuffled = [...cache.data].sort(() => 0.5 - Math.random());
+      const randomRecipes = shuffled.slice(0, 3);
+
+      const populatedRecipes = await Recipe.find({
+        shortId: {$in: randomRecipes.map(r => r.shortId)},
+      })
+        .populate('author', 'name')
+        .lean();
+
+      const withTags = await Promise.all(
+        populatedRecipes.map(r => populateTagsFromGlobalIds(r))
+      );
+
+      return res.json({
+        recipes: withTags,
+        message: 'הנה כמה הפתעות טעימות!',
+        aiResponse: 'בחרתי עבורך מתכונים אקראיים מהאוסף שלנו. בתאבון! 🎲',
+      });
+    }
+
+    // Initialize Groq
+    const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
+
+    // Build context based on mode
+    let systemPrompt = `אתה עוזר מתכונים חכם וידידותי בשם "שף AI".
+תפקידך לעזור למשתמשים למצוא מתכונים מתאימים מתוך רשימה קיימת.
+תמיד תענה בעברית, בצורה חמה וידידותית, עם אימוג'ים.
+אם אין מתכונים מתאימים - הצע חלופות קרובות.`;
+
+    let userPrompt = '';
+
+    if (mode === 'ingredients') {
+      // Mode: What's in the fridge
+      systemPrompt += `\n\nהמשתמש מחפש מתכונים לפי רכיבים שיש לו.
+התאם מתכונים שמכילים כמה שיותר מהרכיבים האלה.`;
+
+      userPrompt = `הרכיבים שיש לי: ${ingredients.join(', ')}
+
+${query ? `העדפות נוספות: ${query}` : ''}
+
+רשימת המתכונים הזמינים:
+${cache.summary.map(r => `- [${r.id}] ${r.title} (${r.tags})`).join('\n')}
+
+בחר 3-5 מתכונים המתאימים ביותר לרכיבים שלי.
+החזר JSON: {"selectedIds": ["id1", "id2"], "explanation": "הסבר קצר"}`;
+
+    } else {
+      // Mode: Chat (free text)
+      userPrompt = `בקשת המשתמש: "${query}"
+
+רשימת המתכונים הזמינים:
+${cache.summary.map(r => `- [${r.id}] ${r.title} (${r.tags})`).join('\n')}
+
+בחר 3-5 מתכונים המתאימים ביותר לבקשה.
+החזר JSON: {"selectedIds": ["id1", "id2"], "explanation": "הסבר קצר וחם עם אימוג'ים"}`;
+    }
+
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {role: 'system', content: systemPrompt},
+        {role: 'user', content: userPrompt},
+      ],
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.5,
+      max_tokens: 500,
+    });
+
+    const responseText = completion.choices[0]?.message?.content || '';
+
+    // Parse AI response
+    let selectedIds = [];
+    let explanation = 'מצאתי לך כמה מתכונים מעניינים!';
+
+    try {
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        selectedIds = parsed.selectedIds || [];
+        explanation = parsed.explanation || explanation;
+      }
+    } catch (e) {
+      console.error('Error parsing AI response:', e);
+      // Fallback: try to extract IDs from text
+      const idMatches = responseText.match(/\[([a-zA-Z0-9]+)\]/g);
+      if (idMatches) {
+        selectedIds = idMatches.map(m => m.replace(/[\[\]]/g, ''));
+      }
+    }
+
+    // Get full recipes
+    const recipes = await Recipe.find({
+      shortId: {$in: selectedIds},
+      isDeleted: false,
+    })
+      .populate('author', 'name')
+      .lean();
+
+    // Populate tags
+    const recipesWithTags = await Promise.all(
+      recipes.map(r => populateTagsFromGlobalIds(r))
+    );
+
+    // Sort by the order AI returned
+    const sortedRecipes = selectedIds
+      .map(id => recipesWithTags.find(r => r.shortId === id))
+      .filter(Boolean);
+
+    res.json({
+      recipes: sortedRecipes,
+      message: explanation,
+      aiResponse: explanation,
+    });
+
+  } catch (err) {
+    console.error('AI Recommend error:', err);
+    res.status(500).json({message: 'שגיאה בחיפוש', error: err.message});
+  }
+};
+
+// Get tags that actually exist in recipes (for tag-based filtering)
+exports.getAvailableTags = async (req, res) => {
+  try {
+    // Get all non-deleted recipes
+    const recipes = await Recipe.find({isDeleted: false, visibility: 'Public'}).select('tags');
+
+    // Collect all unique tag globalIds from recipes
+    const usedTagIds = new Set();
+    recipes.forEach(recipe => {
+      if (recipe.tags && recipe.tags.length > 0) {
+        recipe.tags.forEach(tagId => usedTagIds.add(Number(tagId)));
+      }
+    });
+
+    if (usedTagIds.size === 0) {
+      return res.json([]);
+    }
+
+    // Get all tag categories
+    const tagCategories = await Tag.find();
+
+    // Build result with only categories/tags that exist in recipes
+    const availableTags = [];
+
+    for (const category of tagCategories) {
+      const availableInCategory = category.tags.filter(tag =>
+        usedTagIds.has(tag.globalId)
+      );
+
+      if (availableInCategory.length > 0) {
+        availableTags.push({
+          category: category.category,
+          categoryEn: category.categoryEn,
+          tags: availableInCategory.map(t => ({
+            globalId: t.globalId,
+            name: t.he,
+            nameEn: t.en,
+          })),
+        });
+      }
+    }
+
+    res.json(availableTags);
+  } catch (err) {
+    console.error('Error getting available tags:', err);
+    res.status(500).json({message: 'שגיאה בטעינת תגיות'});
+  }
+};
+
+// Search recipes by selected tags
+exports.searchByTags = async (req, res) => {
+  try {
+    const {tags} = req.body; // Array of globalIds
+
+    if (!tags || tags.length === 0) {
+      return res.status(400).json({message: 'יש לבחור לפחות תגית אחת'});
+    }
+
+    // Find recipes that have ALL selected tags
+    const recipes = await Recipe.find({
+      isDeleted: false,
+      visibility: 'Public',
+      tags: {$all: tags.map(t => String(t))},
+    })
+      .populate('author', 'name')
+      .sort({createdAt: -1})
+      .limit(20)
+      .lean();
+
+    // If no exact matches, find recipes with ANY of the tags
+    let finalRecipes = recipes;
+    let partialMatch = false;
+
+    if (recipes.length === 0 && tags.length > 1) {
+      finalRecipes = await Recipe.find({
+        isDeleted: false,
+        visibility: 'Public',
+        tags: {$in: tags.map(t => String(t))},
+      })
+        .populate('author', 'name')
+        .sort({createdAt: -1})
+        .limit(20)
+        .lean();
+      partialMatch = true;
+    }
+
+    // Populate tags for display
+    const recipesWithTags = await Promise.all(
+      finalRecipes.map(r => populateTagsFromGlobalIds(r))
+    );
+
+    // Sort by number of matching tags (most matches first)
+    recipesWithTags.sort((a, b) => {
+      const aMatches = tags.filter(t => a.tags?.includes(String(t))).length;
+      const bMatches = tags.filter(t => b.tags?.includes(String(t))).length;
+      return bMatches - aMatches;
+    });
+
+    res.json({
+      recipes: recipesWithTags,
+      partialMatch,
+      message: partialMatch
+        ? 'לא נמצאו מתכונים עם כל התגיות, הנה מתכונים עם חלק מהתגיות:'
+        : `נמצאו ${recipesWithTags.length} מתכונים מתאימים!`,
+    });
+  } catch (err) {
+    console.error('Error searching by tags:', err);
+    res.status(500).json({message: 'שגיאה בחיפוש'});
   }
 };

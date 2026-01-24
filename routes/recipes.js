@@ -7,6 +7,11 @@ const upload = multer({dest: 'uploads/'});
 
 router.get('/', recipeController.getRecipes);
 
+// AI Smart Assistant
+router.post('/ai-recommend', recipeController.aiRecommend);
+router.get('/available-tags', recipeController.getAvailableTags);
+router.post('/search-by-tags', recipeController.searchByTags);
+
 // User routes (Specific routes must come before /:userId or /:shortId)
 router.get('/user/recommendations', auth, recipeController.getRecommendations);
 router.get('/user/cart', auth, recipeController.getCart);

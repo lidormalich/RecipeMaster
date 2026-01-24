@@ -12,6 +12,11 @@ router.get('/user/recommendations', auth, recipeController.getRecommendations);
 router.get('/user/cart', auth, recipeController.getCart);
 router.get('/user/:userId', recipeController.getUserRecipes);
 
+// Deleted recipes routes
+router.get('/deleted/all', auth, recipeController.getDeletedRecipes);
+router.patch('/:shortId/restore', auth, recipeController.restoreRecipe);
+router.delete('/:shortId/permanent', auth, recipeController.permanentDeleteRecipe);
+
 // ShortId routes
 router.get('/:shortId', recipeController.getRecipe);
 router.post('/', auth, upload.array('images'), recipeController.createRecipe);

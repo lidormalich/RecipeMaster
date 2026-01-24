@@ -75,6 +75,13 @@ const recipeSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    deletedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    deletedAt: {
+      type: Date,
+    },
     ratings: [
       {
         user: {

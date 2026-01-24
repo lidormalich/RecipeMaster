@@ -282,13 +282,13 @@ const Header = () => {
             </form>
 
             <div className="space-y-2">
-              <Link
+              {/* <Link
                 to="/ai-wizard"
                 onClick={() => setIsMenuOpen(false)}
                 className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                 <span className="text-xl">🤖</span>
                 <span className="font-medium">מה לאכול?</span>
-              </Link>
+              </Link> */}
 
               {user ? (
                 <>

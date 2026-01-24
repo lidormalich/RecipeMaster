@@ -10,16 +10,19 @@ const populateTagsFromGlobalIds = async recipe => {
     return recipe;
   }
 
+  // Normalize tags to numbers for consistent comparison
+  const normalizedTags = recipe.tags.map(t => Number(t));
+
   // Get all tag categories that contain any of these globalIds
   const tagCategories = await Tag.find({
-    'tags.globalId': {$in: recipe.tags},
+    'tags.globalId': {$in: normalizedTags},
   });
 
   // Build a map of globalId to tag info
   const tagMap = {};
   tagCategories.forEach(cat => {
     cat.tags.forEach(tag => {
-      if (recipe.tags.includes(tag.globalId)) {
+      if (normalizedTags.includes(tag.globalId)) {
         tagMap[tag.globalId] = {
           _id: tag._id,
           globalId: tag.globalId,
@@ -33,7 +36,7 @@ const populateTagsFromGlobalIds = async recipe => {
 
   // Convert recipe to object if needed and add populated tags
   const recipeObj = recipe.toObject ? recipe.toObject() : {...recipe};
-  recipeObj.populatedTags = recipe.tags
+  recipeObj.populatedTags = normalizedTags
     .map(globalId => tagMap[globalId])
     .filter(Boolean);
 
@@ -297,6 +300,8 @@ exports.deleteRecipe = async (req, res) => {
     }
 
     recipe.isDeleted = true;
+    recipe.deletedBy = req.user.id;
+    recipe.deletedAt = new Date();
     await recipe.save();
 
     res.json({message: 'Recipe deleted'});
@@ -313,10 +318,122 @@ exports.getUserRecipes = async (req, res) => {
       isDeleted: false,
     })
       .populate('author', 'name')
-      .populate('tags', 'name')
       .sort({createdAt: -1});
 
-    res.json(recipes);
+    // Populate tags from globalIds
+    const recipesWithTags = await Promise.all(
+      recipes.map(recipe => populateTagsFromGlobalIds(recipe)),
+    );
+
+    res.json(recipesWithTags);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// Get deleted recipes - for regular users: only their own, for admin/posteradmin: all deleted
+exports.getDeletedRecipes = async (req, res) => {
+  try {
+    const userRole = req.user.role?.toLowerCase();
+    const isAdmin = userRole === 'admin' || userRole === 'posteradmin';
+
+    let query = {isDeleted: true};
+
+    // Regular users can only see their own deleted recipes
+    if (!isAdmin) {
+      query.author = req.user.id;
+    }
+
+    const recipes = await Recipe.find(query)
+      .populate('author', 'name')
+      .populate('deletedBy', 'name')
+      .sort({deletedAt: -1});
+
+    const recipesWithTags = await Promise.all(
+      recipes.map(recipe => populateTagsFromGlobalIds(recipe)),
+    );
+
+    res.json(recipesWithTags);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// Restore a deleted recipe
+exports.restoreRecipe = async (req, res) => {
+  try {
+    const recipe = await Recipe.findOne({shortId: req.params.shortId});
+
+    if (!recipe) {
+      return res.status(404).json({message: 'Recipe not found'});
+    }
+
+    if (!recipe.isDeleted) {
+      return res.status(400).json({message: 'Recipe is not deleted'});
+    }
+
+    // Allow restore if: owner OR Admin/PosterAdmin
+    const isOwner = recipe.author.toString() === req.user.id;
+    const hasRestorePermission = canEditAnyRecipe(req.user.role);
+
+    if (!isOwner && !hasRestorePermission) {
+      return res.status(403).json({message: 'Access denied'});
+    }
+
+    recipe.isDeleted = false;
+    recipe.deletedBy = null;
+    recipe.deletedAt = null;
+    await recipe.save();
+
+    res.json({message: 'Recipe restored successfully'});
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// Permanently delete a recipe (Admin/PosterAdmin only)
+exports.permanentDeleteRecipe = async (req, res) => {
+  try {
+    const recipe = await Recipe.findOne({shortId: req.params.shortId});
+
+    if (!recipe) {
+      return res.status(404).json({message: 'Recipe not found'});
+    }
+
+    // Only Admin/PosterAdmin can permanently delete
+    const hasPermission = canEditAnyRecipe(req.user.role);
+
+    if (!hasPermission) {
+      return res.status(403).json({message: 'Access denied - Admin only'});
+    }
+
+    // Delete images from cloudinary if they exist
+    if (recipe.mainImage) {
+      const publicId = recipe.mainImage.split('/').pop().split('.')[0];
+      try {
+        await cloudinary.uploader.destroy(`recipes/${publicId}`);
+      } catch (cloudErr) {
+        console.error('Error deleting main image from cloudinary:', cloudErr);
+      }
+    }
+
+    if (recipe.additionalImages && recipe.additionalImages.length > 0) {
+      for (const img of recipe.additionalImages) {
+        const publicId = img.split('/').pop().split('.')[0];
+        try {
+          await cloudinary.uploader.destroy(`recipes/${publicId}`);
+        } catch (cloudErr) {
+          console.error('Error deleting additional image from cloudinary:', cloudErr);
+        }
+      }
+    }
+
+    await Recipe.findByIdAndDelete(recipe._id);
+
+    res.json({message: 'Recipe permanently deleted'});
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

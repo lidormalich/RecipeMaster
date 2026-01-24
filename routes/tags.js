@@ -25,4 +25,7 @@ router.get('/search', tagController.searchTags);
 // Get tag recommendations based on selected tags
 router.get('/recommend', tagController.recommendTags);
 
+// AI auto-generate tags based on recipe content
+router.post('/generate-ai', auth, tagController.generateTagsAI);
+
 module.exports = router;

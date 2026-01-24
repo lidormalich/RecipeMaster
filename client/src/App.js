@@ -15,6 +15,7 @@ import Cart from './pages/Cart';
 import ManageUsers from './pages/ManageUsers';
 import ManageTags from './pages/ManageTags';
 import Favorites from './pages/Favorites';
+import Trash from './pages/Trash';
 import AIWizard from './components/AIWizard';
 import AIAssistant from './components/AIAssistant';
 
@@ -37,6 +38,7 @@ function App() {
               <Route path="/manage-users" element={<ManageUsers />} />
               <Route path="/manage-tags" element={<ManageTags />} />
               <Route path="/favorites" element={<Favorites />} />
+              <Route path="/trash" element={<Trash />} />
               <Route path="/ai-wizard" element={<AIWizard />} />
             </Routes>
           </main>

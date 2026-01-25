@@ -37,7 +37,7 @@ exports.register = async (req, res) => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      {expiresIn: '1h'},
+      {expiresIn: '7d'},
       (err, token) => {
         if (err) throw err;
         res.json({token});
@@ -79,7 +79,7 @@ exports.login = async (req, res) => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      {expiresIn: '1h'},
+      {expiresIn: '7d'},
       (err, token) => {
         if (err) throw err;
         res.json({token});
@@ -107,7 +107,7 @@ exports.googleAuthCallback = (req, res) => {
       id: req.user.id,
     },
   };
-  jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '1h'}, (err, token) => {
+  jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '7d'}, (err, token) => {
     if (err) throw err;
     res.redirect(`${process.env.CLIENT_URL}/?token=${token}`);
   });

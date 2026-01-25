@@ -7,6 +7,7 @@ const Header = () => {
   const {user, logout: authLogout} = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [cartItemsCount, setCartItemsCount] = useState(0);
   const navigate = useNavigate();
 
@@ -44,12 +45,19 @@ const Header = () => {
   useEffect(() => {
     const handleClickOutside = () => {
       setIsProfileOpen(false);
+      setIsAdminOpen(false);
     };
-    if (isProfileOpen) {
+    if (isProfileOpen || isAdminOpen) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [isProfileOpen]);
+  }, [isProfileOpen, isAdminOpen]);
+
+  // Check if user has admin/poster permissions
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const canManage = ['poster', 'posteradmin', 'admin'].includes(
+    user?.role?.toLowerCase(),
+  );
 
   return (
     <header className="bg-slate-900 text-white shadow-2xl sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
@@ -87,22 +95,10 @@ const Header = () => {
               </div>
             </form>
 
-            {/* קישור AI Wizard */}
-            {/* <Link
-              to="/ai-wizard"
-              className="flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 group">
-              <span className="text-xl group-hover:scale-110 transition-transform">
-                🤖
-              </span>
-              <span className="font-medium">מה לאכול?</span>
-            </Link> */}
-
             {user ? (
               <>
                 {/* כפתור יצירת מתכון - רק ל-Poster, PosterAdmin, Admin */}
-                {['poster', 'posteradmin', 'admin'].includes(
-                  user?.role?.toLowerCase(),
-                ) && (
+                {canManage && (
                   <Link
                     to="/create-recipe"
                     className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-200 hover:scale-105">
@@ -120,24 +116,73 @@ const Header = () => {
                   className="px-1 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
                   ❤️ מועדפים
                 </Link>
-                {/* ניהול תגיות - רק ל-Poster, PosterAdmin, Admin */}
-                {['poster', 'posteradmin', 'admin'].includes(
-                  user?.role?.toLowerCase(),
-                ) && (
-                  <Link
-                    to="/manage-tags"
-                    className="px-1 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
-                    🏷️ ניהול תגיות
-                  </Link>
-                )}
 
-                {/* ניהול משתמשים - רק ל-Admin */}
-                {user?.role?.toLowerCase() === 'admin' && (
-                  <Link
-                    to="/manage-users"
-                    className="px-1 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
-                    👥 ניהול משתמשים
-                  </Link>
+                {/* תפריט ניהול - לכל בעלי הרשאות */}
+                {canManage && (
+                  <div className="relative">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        setIsAdminOpen(!isAdminOpen);
+                        setIsProfileOpen(false);
+                      }}
+                      className="flex items-center space-x-2 space-x-reverse px-3 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200 font-medium">
+                      <span>⚙️</span>
+                      <span>ניהול</span>
+                      <svg
+                        className={`w-4 h-4 transition-transform duration-200 ${isAdminOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+
+                    {/* Admin Dropdown */}
+                    {isAdminOpen && (
+                      <div className="absolute left-0 mt-2 w-56 bg-slate-800 rounded-lg shadow-2xl border border-slate-700 overflow-hidden animate-fadeIn">
+                        <div className="px-4 py-3 border-b border-slate-700 bg-slate-700/50">
+                          <p className="font-semibold text-white flex items-center gap-2">
+                            <span>⚙️</span>
+                            פאנל ניהול
+                          </p>
+                        </div>
+
+                        <Link
+                          to="/manage-tags"
+                          onClick={() => setIsAdminOpen(false)}
+                          className="flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-slate-700 transition-colors">
+                          <span>🏷️</span>
+                          <span>ניהול תגיות</span>
+                        </Link>
+
+                        {isAdmin && (
+                          <>
+                            <Link
+                              to="/manage-users"
+                              onClick={() => setIsAdminOpen(false)}
+                              className="flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-slate-700 transition-colors">
+                              <span>👥</span>
+                              <span>ניהול משתמשים</span>
+                            </Link>
+
+                            <Link
+                              to="/admin/groq-dashboard"
+                              onClick={() => setIsAdminOpen(false)}
+                              className="flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-slate-700 transition-colors border-t border-slate-700">
+                              <span>📊</span>
+                              <span>ניטור API (Groq)</span>
+                            </Link>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {/* סל קניות עם Badge */}
@@ -160,6 +205,7 @@ const Header = () => {
                     onClick={e => {
                       e.stopPropagation();
                       setIsProfileOpen(!isProfileOpen);
+                      setIsAdminOpen(false);
                     }}
                     className="flex items-center space-x-2 space-x-reverse px-3 py-2 rounded-lg hover:bg-slate-800 transition-all duration-200">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-sm">
@@ -282,20 +328,10 @@ const Header = () => {
             </form>
 
             <div className="space-y-2">
-              {/* <Link
-                to="/ai-wizard"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
-                <span className="text-xl">🤖</span>
-                <span className="font-medium">מה לאכול?</span>
-              </Link> */}
-
               {user ? (
                 <>
                   {/* כפתור יצירת מתכון - רק ל-Poster, PosterAdmin, Admin */}
-                  {['poster', 'posteradmin', 'admin'].includes(
-                    user?.role?.toLowerCase(),
-                  ) && (
+                  {canManage && (
                     <Link
                       to="/create-recipe"
                       onClick={() => setIsMenuOpen(false)}
@@ -319,28 +355,42 @@ const Header = () => {
                     <span>מועדפים</span>
                   </Link>
 
-                  {/* ניהול תגיות - רק ל-Poster, PosterAdmin, Admin */}
-                  {['poster', 'posteradmin', 'admin'].includes(
-                    user?.role?.toLowerCase(),
-                  ) && (
-                    <Link
-                      to="/manage-tags"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
-                      <span>🏷️</span>
-                      <span>ניהול תגיות</span>
-                    </Link>
-                  )}
+                  {/* תפריט ניהול במובייל */}
+                  {canManage && (
+                    <div className="border-t border-slate-700 mt-2 pt-2">
+                      <div className="px-4 py-2 text-sm text-slate-400 font-medium flex items-center gap-2">
+                        <span>⚙️</span>
+                        ניהול
+                      </div>
 
-                  {/* ניהול משתמשים - רק ל-Admin */}
-                  {user?.role?.toLowerCase() === 'admin' && (
-                    <Link
-                      to="/manage-users"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
-                      <span>👥</span>
-                      <span>ניהול משתמשים</span>
-                    </Link>
+                      <Link
+                        to="/manage-tags"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                        <span>🏷️</span>
+                        <span>ניהול תגיות</span>
+                      </Link>
+
+                      {isAdmin && (
+                        <>
+                          <Link
+                            to="/manage-users"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                            <span>👥</span>
+                            <span>ניהול משתמשים</span>
+                          </Link>
+
+                          <Link
+                            to="/admin/groq-dashboard"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                            <span>📊</span>
+                            <span>ניטור API (Groq)</span>
+                          </Link>
+                        </>
+                      )}
+                    </div>
                   )}
 
                   <Link

@@ -3,7 +3,7 @@ const User = require('../models/User');
 const Cart = require('../models/Cart');
 const Tag = require('../models/Tag');
 const cloudinary = require('cloudinary').v2;
-const Groq = require('groq-sdk');
+const {groqWithTracking} = require('./groqController');
 
 // Helper function to populate tags from globalIds
 const populateTagsFromGlobalIds = async recipe => {
@@ -604,9 +604,6 @@ exports.aiRecommend = async (req, res) => {
       });
     }
 
-    // Initialize Groq
-    const groq = new Groq({apiKey: process.env.GROQ_API_KEY});
-
     // Build context based on mode
     let systemPrompt = `אתה עוזר מתכונים חכם וידידותי בשם "שף AI".
 תפקידך לעזור למשתמשים למצוא מתכונים מתאימים מתוך רשימה קיימת.
@@ -641,15 +638,16 @@ ${cache.summary.map(r => `- [${r.id}] ${r.title} (${r.tags})`).join('\n')}
 החזר JSON: {"selectedIds": ["id1", "id2"], "explanation": "הסבר קצר וחם עם אימוג'ים"}`;
     }
 
-    const completion = await groq.chat.completions.create({
-      messages: [
+    // Use groqWithTracking for usage monitoring
+    const completion = await groqWithTracking(
+      [
         {role: 'system', content: systemPrompt},
         {role: 'user', content: userPrompt},
       ],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.5,
-      max_tokens: 500,
-    });
+      'llama-3.3-70b-versatile',
+      {temperature: 0.5, max_tokens: 500},
+      'ai-recommend'
+    );
 
     const responseText = completion.choices[0]?.message?.content || '';
 

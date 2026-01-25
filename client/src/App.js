@@ -18,6 +18,7 @@ import Favorites from './pages/Favorites';
 import Trash from './pages/Trash';
 import AIWizard from './components/AIWizard';
 import AIAssistant from './components/AIAssistant';
+import GroqDashboard from './pages/GroqDashboard';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/trash" element={<Trash />} />
               <Route path="/ai-wizard" element={<AIWizard />} />
+              <Route path="/admin/groq-dashboard" element={<GroqDashboard />} />
             </Routes>
           </main>
 

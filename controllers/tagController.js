@@ -1,5 +1,5 @@
 const Tag = require('../models/Tag');
-const Groq = require('groq-sdk');
+const {groqWithTracking} = require('./groqController');
 
 // ========== CACHE SYSTEM ==========
 let tagsCache = {
@@ -333,11 +333,6 @@ exports.generateTagsAI = async (req, res) => {
       tags: cat.tags.map(t => ({id: t.globalId, name: t.he})),
     }));
 
-    // Initialize Groq client
-    const groq = new Groq({
-      apiKey: process.env.GROQ_API_KEY,
-    });
-
     const prompt = `אתה מומחה לסיווג מתכונים. עליך לבחור תגיות מתוך רשימה קיימת בלבד.
 
 פרטי המתכון:
@@ -363,19 +358,13 @@ ${JSON.stringify(existingTagsJSON, null, 2)}
 דוגמה נכונה (עם IDs מהרשימה):
 {"tags": [{"id": 1003, "name": "30-45 דקות", "category": "זמן הכנה"}, {"id": 2002, "name": "קל", "category": "רמת קושי"}]}`;
 
-    // console.log('Sending request to Groq...');
-
-    const completion = await groq.chat.completions.create({
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.3,
-      max_tokens: 800,
-    });
+    // Use groqWithTracking for usage monitoring
+    const completion = await groqWithTracking(
+      [{role: 'user', content: prompt}],
+      'llama-3.3-70b-versatile',
+      {temperature: 0.3, max_tokens: 800},
+      'generate-tags'
+    );
 
     const responseText = completion.choices[0]?.message?.content || '';
     // console.log('Groq raw response:', responseText);

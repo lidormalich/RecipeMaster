@@ -167,11 +167,14 @@ exports.getRecipe = async (req, res) => {
       return res.status(404).json({message: 'Recipe not found'});
     }
 
-    if (
-      recipe.visibility === 'Private' &&
-      (!req.user || req.user.id !== recipe.author.id)
-    ) {
-      return res.status(403).json({message: 'Access denied'});
+    // Check access for private recipes - owner can always access
+    if (recipe.visibility === 'Private') {
+      const authorId = recipe.author._id?.toString() || recipe.author.toString();
+      const userId = req.user?.id?.toString() || req.user?._id?.toString();
+
+      if (!userId || userId !== authorId) {
+        return res.status(403).json({message: 'Access denied'});
+      }
     }
 
     // Populate tags from globalIds
@@ -314,10 +317,23 @@ exports.deleteRecipe = async (req, res) => {
 
 exports.getUserRecipes = async (req, res) => {
   try {
-    const recipes = await Recipe.find({
-      author: req.params.userId,
+    const requestedUserId = req.params.userId;
+    const currentUserId = req.user?.id?.toString() || req.user?._id?.toString();
+
+    // Check if viewing own recipes
+    const isOwnProfile = currentUserId && currentUserId === requestedUserId;
+
+    let query = {
+      author: requestedUserId,
       isDeleted: false,
-    })
+    };
+
+    // If not viewing own profile, only show public recipes
+    if (!isOwnProfile) {
+      query.visibility = 'Public';
+    }
+
+    const recipes = await Recipe.find(query)
       .populate('author', 'name')
       .sort({createdAt: -1});
 

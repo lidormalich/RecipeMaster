@@ -222,6 +222,11 @@ const RecipeForm = ({
       const uploadData = new FormData();
       uploadData.append('image', fileToUpload);
 
+      // Send old image URL so server can delete it
+      if (formData.mainImage) {
+        uploadData.append('oldImageUrl', formData.mainImage);
+      }
+
       const response = await axios.post('/api/upload', uploadData, {
         headers: {
           'Content-Type': 'multipart/form-data',

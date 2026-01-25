@@ -81,11 +81,19 @@ const RecipeDetail = () => {
 
   const fetchRecipe = async () => {
     try {
-      const res = await axios.get(`/api/recipes/${shortId}`);
+      const token = localStorage.getItem('token');
+      const config = token ? {headers: {Authorization: `Bearer ${token}`}} : {};
+      const res = await axios.get(`/api/recipes/${shortId}`, config);
       setRecipe(res.data);
     } catch (err) {
       console.error(err);
-      toast.error('שגיאה בטעינת המתכון');
+      if (err.response?.status === 403) {
+        toast.error('אין לך הרשאה לצפות במתכון זה');
+      } else if (err.response?.status === 404) {
+        toast.error('המתכון לא נמצא');
+      } else {
+        toast.error('שגיאה בטעינת המתכון');
+      }
     } finally {
       setLoading(false);
     }

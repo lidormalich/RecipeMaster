@@ -28,8 +28,51 @@ const upload = multer({
   },
 });
 
+// Helper function to safely extract public ID from Cloudinary URL
+// Only extracts IDs from our 'recipemaster' folder to prevent accidental deletion of other assets
+const extractPublicId = (cloudinaryUrl) => {
+  if (!cloudinaryUrl || typeof cloudinaryUrl !== 'string') return null;
+
+  // Must be a Cloudinary URL
+  if (!cloudinaryUrl.includes('cloudinary.com')) return null;
+
+  // Must be from our cloud
+  if (!cloudinaryUrl.includes(process.env.CLOUDINARY_CLOUD_NAME)) return null;
+
+  try {
+    // URL format: https://res.cloudinary.com/xxx/image/upload/v123/recipemaster/filename.jpg
+    const urlParts = cloudinaryUrl.split('/');
+    const uploadIndex = urlParts.indexOf('upload');
+
+    if (uploadIndex === -1) return null;
+
+    // Get path after 'upload/vXXX/'
+    const pathAfterUpload = urlParts.slice(uploadIndex + 2).join('/');
+
+    // SAFETY: Only allow deletion from 'recipemaster' folder
+    if (!pathAfterUpload.startsWith('recipemaster/')) {
+      console.warn('Attempted to delete image outside recipemaster folder:', pathAfterUpload);
+      return null;
+    }
+
+    // Remove file extension
+    const publicId = pathAfterUpload.replace(/\.[^/.]+$/, '');
+
+    // SAFETY: Must have a valid format (folder/filename)
+    if (!publicId || publicId.split('/').length < 2) {
+      console.warn('Invalid public ID format:', publicId);
+      return null;
+    }
+
+    return publicId;
+  } catch (e) {
+    console.error('Error extracting public ID:', e);
+  }
+  return null;
+};
+
 // @route   POST /api/upload
-// @desc    Upload image to Cloudinary
+// @desc    Upload image to Cloudinary (auto-deletes old image if provided)
 // @access  Private
 router.post('/', auth, (req, res, next) => {
   upload.single('image')(req, res, (err) => {
@@ -54,6 +97,21 @@ router.post('/', auth, (req, res, next) => {
     if (!req.file) {
       console.log('ERROR: No file in request');
       return res.status(400).json({msg: 'No file uploaded'});
+    }
+
+    // Delete old image if URL provided
+    const oldImageUrl = req.body.oldImageUrl;
+    if (oldImageUrl) {
+      const oldPublicId = extractPublicId(oldImageUrl);
+      if (oldPublicId) {
+        try {
+          console.log('Deleting old image:', oldPublicId);
+          await cloudinary.uploader.destroy(oldPublicId);
+          console.log('Old image deleted successfully');
+        } catch (deleteErr) {
+          console.error('Error deleting old image (continuing):', deleteErr.message);
+        }
+      }
     }
 
     console.log('File received:', {

@@ -5,6 +5,7 @@ const passport = require('passport');
 const dotenv = require('dotenv');
 const cloudinary = require('cloudinary').v2;
 const path = require('path');
+const fs = require('fs');
 
 dotenv.config();
 
@@ -64,6 +65,7 @@ app.use('/api/upload', require('./routes/upload'));
 app.use('/api/groq', require('./routes/groq'));
 
 const reactBuildPath = path.join(__dirname, 'client/build');
+const Recipe = require('./models/Recipe');
 
 const reactOptions = {
   redirect: false,
@@ -75,6 +77,77 @@ const reactOptions = {
 
 app.use(express.static(path.join(__dirname, 'client')));
 app.use(express.static(reactBuildPath, reactOptions));
+
+// Open Graph meta tags for recipe sharing (WhatsApp, Facebook, Twitter, etc.)
+app.get('/recipe/:shortId', async (req, res) => {
+  try {
+    const {shortId} = req.params;
+    const recipe = await Recipe.findOne({shortId, isDeleted: false});
+
+    // Read the index.html file
+    const indexPath = path.join(reactBuildPath, 'index.html');
+    let html = fs.readFileSync(indexPath, 'utf8');
+
+    if (recipe && recipe.visibility === 'Public') {
+      // Escape special characters for HTML
+      const escapeHtml = str =>
+        str
+          ? str
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+          : '';
+
+      const title = escapeHtml(recipe.title) || 'RecipeMaster';
+      const description =
+        escapeHtml(recipe.description?.substring(0, 200)) ||
+        'מתכון טעים ב-RecipeMaster';
+      const image =
+        recipe.mainImage ||
+        'https://res.cloudinary.com/recipemaster/image/upload/v1/recipemaster/default-recipe.jpg';
+      const url = `${process.env.BASE_URL || 'https://recipemaster.onrender.com'}/recipe/${shortId}`;
+
+      // Create OG meta tags
+      const ogTags = `
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="${url}" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:image" content="${image}" />
+    <meta property="og:site_name" content="RecipeMaster" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="${url}" />
+    <meta name="twitter:title" content="${title}" />
+    <meta name="twitter:description" content="${description}" />
+    <meta name="twitter:image" content="${image}" />
+
+    <!-- WhatsApp specific -->
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+`;
+
+      // Inject OG tags before </head>
+      html = html.replace('</head>', `${ogTags}</head>`);
+
+      // Update title tag
+      html = html.replace(
+        /<title>.*?<\/title>/,
+        `<title>${title} | RecipeMaster</title>`,
+      );
+    }
+
+    res.send(html);
+  } catch (err) {
+    console.error('Error generating OG tags:', err);
+    // Fallback to regular index.html
+    res.sendFile(path.join(reactBuildPath, 'index.html'));
+  }
+});
+
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) {
     return next();

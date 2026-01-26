@@ -680,7 +680,7 @@ We welcome contributions from the community! Here's how you can help make Recipe
 ### Ways to Contribute
 
 - **🐛 Bug Reports**: Found a bug? [Open an issue](https://github.com/yourusername/recipemaster/issues) with detailed steps to reproduce
-- **💡 Feature Requests**: Have an idea? [Create a feature request](https://github.com/yourusername/recipemaster/issues) 
+- **💡 Feature Requests**: Have an idea? [Create a feature request](https://github.com/yourusername/recipemaster/issues)
 - **📝 Documentation**: Help improve documentation, tutorials, or examples
 - **🔧 Code Contributions**: Fix bugs, add features, or improve performance
 - **🎨 UI/UX Improvements**: Enhance the user interface and experience
@@ -721,6 +721,7 @@ We welcome contributions from the community! Here's how you can help make Recipe
 ### Reporting Issues
 
 When reporting bugs, please include:
+
 - Steps to reproduce the issue
 - Expected vs. actual behavior
 - Browser/OS information
@@ -738,17 +739,20 @@ By contributing to RecipeMaster, you agree that your contributions will be licen
 If you need help with RecipeMaster, here are several ways to get support:
 
 #### 📧 Contact Information
+
 - **Email**: support@recipemaster.com
 - **GitHub Issues**: [Report bugs or request features](https://github.com/yourusername/recipemaster/issues)
 - **Discussions**: [Join community discussions](https://github.com/yourusername/recipemaster/discussions)
 
 #### 🆘 Common Support Topics
+
 - **Installation Issues**: Check the [Installation](#-installation) section
 - **API Questions**: See [API Documentation](#-api-endpoints)
 - **Troubleshooting**: Visit the [Troubleshooting](#-troubleshooting) section
 - **Feature Requests**: Use GitHub Issues with the "enhancement" label
 
 #### 📚 Resources
+
 - **Documentation**: This README and inline code documentation
 - **API Examples**: See the [API Examples](#-api-examples) section
 - **FAQ**: Check the [Frequently Asked Questions](#-faq) section
@@ -771,6 +775,7 @@ If you need help with RecipeMaster, here are several ways to get support:
 RecipeMaster is built with the help of these amazing open-source projects:
 
 #### Backend
+
 - **[Express.js](https://expressjs.com/)** - Fast, unopinionated web framework
 - **[MongoDB](https://www.mongodb.com/)** - NoSQL database
 - **[Mongoose](https://mongoosejs.com/)** - MongoDB object modeling
@@ -780,6 +785,7 @@ RecipeMaster is built with the help of these amazing open-source projects:
 - **[express-validator](https://express-validator.github.io/)** - Server-side validation
 
 #### Frontend
+
 - **[React](https://reactjs.org/)** - UI library
 - **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
 - **[Axios](https://axios-http.com/)** - HTTP client
@@ -787,10 +793,12 @@ RecipeMaster is built with the help of these amazing open-source projects:
 - **[React Toastify](https://fkhadra.github.io/react-toastify/)** - Toast notifications
 
 #### AI & Media
+
 - **[Groq](https://groq.com/)** - AI language model API
 - **[Cloudinary](https://cloudinary.com/)** - Cloud image management
 
 #### Development Tools
+
 - **[Nodemon](https://nodemon.io/)** - Auto-restart for Node.js
 - **[Concurrently](https://www.npmjs.com/package/concurrently)** - Run multiple commands
 - **[ESLint](https://eslint.org/)** - Code linting

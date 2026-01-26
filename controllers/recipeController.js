@@ -84,7 +84,7 @@ exports.getRecipes = async (req, res) => {
 exports.addToCart = async (req, res) => {
   try {
     const {shortId} = req.params;
-    const recipe = await Recipe.findOne({shortId});
+    const recipe = await Recipe.findOne({shortId: {$regex: new RegExp(`^${shortId}$`, 'i')}});
 
     if (!recipe) {
       return res.status(404).json({message: 'Recipe not found'});
@@ -158,7 +158,7 @@ exports.getCart = async (req, res) => {
 
 exports.getRecipe = async (req, res) => {
   try {
-    const recipe = await Recipe.findOne({shortId: req.params.shortId}).populate(
+    const recipe = await Recipe.findOne({shortId: {$regex: new RegExp(`^${req.params.shortId}$`, 'i')}}).populate(
       'author',
       'name email',
     );
@@ -256,7 +256,8 @@ const canEditAnyRecipe = userRole => {
 
 exports.updateRecipe = async (req, res) => {
   try {
-    let recipe = await Recipe.findOne({shortId: req.params.shortId});
+    const shortIdRegex = {$regex: new RegExp(`^${req.params.shortId}$`, 'i')};
+    let recipe = await Recipe.findOne({shortId: shortIdRegex});
 
     if (!recipe) {
       return res.status(404).json({message: 'Recipe not found'});
@@ -271,7 +272,7 @@ exports.updateRecipe = async (req, res) => {
     }
 
     recipe = await Recipe.findOneAndUpdate(
-      {shortId: req.params.shortId},
+      {shortId: shortIdRegex},
       req.body,
       {
         new: true,
@@ -289,7 +290,7 @@ exports.updateRecipe = async (req, res) => {
 
 exports.deleteRecipe = async (req, res) => {
   try {
-    const recipe = await Recipe.findOne({shortId: req.params.shortId});
+    const recipe = await Recipe.findOne({shortId: {$regex: new RegExp(`^${req.params.shortId}$`, 'i')}});
 
     if (!recipe) {
       return res.status(404).json({message: 'Recipe not found'});
@@ -381,7 +382,7 @@ exports.getDeletedRecipes = async (req, res) => {
 // Restore a deleted recipe
 exports.restoreRecipe = async (req, res) => {
   try {
-    const recipe = await Recipe.findOne({shortId: req.params.shortId});
+    const recipe = await Recipe.findOne({shortId: {$regex: new RegExp(`^${req.params.shortId}$`, 'i')}});
 
     if (!recipe) {
       return res.status(404).json({message: 'Recipe not found'});
@@ -414,7 +415,7 @@ exports.restoreRecipe = async (req, res) => {
 // Permanently delete a recipe (Admin/PosterAdmin only)
 exports.permanentDeleteRecipe = async (req, res) => {
   try {
-    const recipe = await Recipe.findOne({shortId: req.params.shortId});
+    const recipe = await Recipe.findOne({shortId: {$regex: new RegExp(`^${req.params.shortId}$`, 'i')}});
 
     if (!recipe) {
       return res.status(404).json({message: 'Recipe not found'});

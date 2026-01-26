@@ -82,7 +82,11 @@ app.use(express.static(reactBuildPath, reactOptions));
 app.get('/recipe/:shortId', async (req, res) => {
   try {
     const {shortId} = req.params;
-    const recipe = await Recipe.findOne({shortId, isDeleted: false});
+    // Case-insensitive search for shortId
+    const recipe = await Recipe.findOne({
+      shortId: {$regex: new RegExp(`^${shortId}$`, 'i')},
+      isDeleted: false,
+    });
 
     // Read the index.html file
     const indexPath = path.join(reactBuildPath, 'index.html');
@@ -106,7 +110,8 @@ app.get('/recipe/:shortId', async (req, res) => {
       const image =
         recipe.mainImage ||
         'https://res.cloudinary.com/recipemaster/image/upload/v1/recipemaster/default-recipe.jpg';
-      const url = `${process.env.BASE_URL || 'https://recipemaster.onrender.com'}/recipe/${shortId}`;
+      // Use the actual shortId from database to maintain consistent URLs
+      const url = `${process.env.BASE_URL || 'https://recipemaster.onrender.com'}/recipe/${recipe.shortId}`;
 
       // Create OG meta tags
       const ogTags = `

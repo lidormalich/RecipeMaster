@@ -1,233 +1,302 @@
 # RecipeMaster 🍳
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/recipemaster/releases)
-[![Node](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen.svg)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Claude](https://img.shields.io/badge/Claude-Sonnet%204.5%20%2B%20Haiku%204.5-purple.svg)](https://claude.ai/)
-[![React](https://img.shields.io/badge/React-18.2.0-blue.svg)](https://reactjs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-7.8.8-green.svg)](https://www.mongodb.com/)
-[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-blue.svg)](https://tailwindcss.com/)
+<div align="center">
 
-A comprehensive MERN stack recipe sharing application with AI-powered recommendations, shopping cart, cooking mode, and full Hebrew UI support.
+![RecipeMaster](https://img.shields.io/badge/RecipeMaster-Recipe%20Sharing%20Platform-orange?style=for-the-badge)
+
+**A comprehensive MERN stack recipe sharing application with AI-powered recommendations**
+
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=flat-square)](https://github.com/lidormalich/recipemaster/releases)
+[![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=flat-square)](https://github.com/lidormalich/recipemaster/graphs/commit-activity)
+
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18.2.0-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7.x-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Express.js](https://img.shields.io/badge/Express.js-4.x-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+
+[![Cloudinary](https://img.shields.io/badge/Cloudinary-Image%20Storage-3448C5?style=flat-square&logo=cloudinary&logoColor=white)](https://cloudinary.com/)
+[![Groq](https://img.shields.io/badge/Groq-AI%20Powered-F55036?style=flat-square)](https://groq.com/)
+[![JWT](https://img.shields.io/badge/JWT-Authentication-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
+[![Google OAuth](https://img.shields.io/badge/Google-OAuth%202.0-4285F4?style=flat-square&logo=google&logoColor=white)](https://developers.google.com/identity)
+
+[![GitHub Stars](https://img.shields.io/github/stars/lidormalich/recipemaster?style=social)](https://github.com/lidormalich/recipemaster/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/lidormalich/recipemaster?style=social)](https://github.com/lidormalich/recipemaster/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/lidormalich/recipemaster?style=flat-square)](https://github.com/lidormalich/recipemaster/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/lidormalich/recipemaster?style=flat-square)](https://github.com/lidormalich/recipemaster/pulls)
+
+[Live Demo](https://recipemaster.onrender.com) • [Report Bug](https://github.com/lidormalich/recipemaster/issues) • [Request Feature](https://github.com/lidormalich/recipemaster/issues)
+
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [About](#-about)
+- [Screenshots](#-screenshots)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-architecture)
+- [Getting Started](#-getting-started)
+- [Configuration](#-configuration)
+- [API Documentation](#-api-documentation)
+- [Database Schema](#-database-schema)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [Roadmap](#-roadmap)
+- [FAQ](#-faq)
+- [Support](#-support)
+- [License](#-license)
+- [Credits](#-credits)
+
+---
+
+## 🎯 About
+
+**RecipeMaster** is a full-featured recipe sharing platform built with the MERN stack (MongoDB, Express.js, React, Node.js). It combines traditional recipe management with cutting-edge AI technology to provide personalized recipe recommendations.
+
+### Why RecipeMaster?
+
+| Feature                | Description                                                |
+| ---------------------- | ---------------------------------------------------------- |
+| 🤖 **AI-Powered**      | Smart recipe recommendations using Groq AI (Llama 3.3 70B) |
+| 🌐 **Hebrew First**    | Complete RTL support with Hebrew UI                        |
+| 📱 **Responsive**      | Optimized for all devices - desktop, tablet, mobile        |
+| 👨‍🍳 **Cooking Mode**    | Distraction-free cooking experience                        |
+| 🛒 **Smart Cart**      | Intelligent shopping list management                       |
+| 🔒 **Secure**          | JWT + OAuth authentication                                 |
+| 📊 **Admin Dashboard** | Full control with usage analytics                          |
+| 🔗 **Social Sharing**  | Open Graph meta tags for rich previews                     |
+
+### Key Highlights
+
+- **Full MERN Stack** - MongoDB, Express.js, React 18, Node.js
+- **AI Integration** - Groq API with usage tracking dashboard
+- **Cloud Storage** - Cloudinary for image management with auto-optimization
+- **Authentication** - JWT tokens + Google OAuth 2.0
+- **Real-time Feedback** - Toast notifications throughout the app
+- **Soft Delete** - Recipe restoration from trash
+
+---
 
 ## 📸 Screenshots
 
+<details>
+<summary><b>Click to expand screenshots</b></summary>
+
 ### Desktop View
 
-_Add screenshots here showing the main interface, recipe pages, and AI wizard_
+| Home Page                     | Recipe Detail                     | AI Assistant              |
+| ----------------------------- | --------------------------------- | ------------------------- |
+| ![Home](screenshots/home.png) | ![Recipe](screenshots/recipe.png) | ![AI](screenshots/ai.png) |
 
 ### Mobile View
 
-_Add mobile screenshots showing responsive design and cooking mode_
+| Browse                                          | Cooking Mode                        | Cart                          |
+| ----------------------------------------------- | ----------------------------------- | ----------------------------- |
+| ![Mobile Browse](screenshots/mobile-browse.png) | ![Cooking](screenshots/cooking.png) | ![Cart](screenshots/cart.png) |
 
-### AI Assistant
+### Admin Dashboard
 
-_Add screenshots of the AI recommendation wizard and floating button_
+| Users Management                      | Groq API Stats                      |
+| ------------------------------------- | ----------------------------------- |
+| ![Users](screenshots/admin-users.png) | ![Groq](screenshots/admin-groq.png) |
 
-> **Note**: Screenshots will be added to `screenshots/` directory. Please add images in PNG/JPG format.
+</details>
+
+---
 
 ## ✨ Features
 
-### 👤 User Authentication
+### 🔐 Authentication & Users
 
-- JWT-based authentication with secure password hashing
-- Google OAuth 2.0 integration for easy login
-- User roles: User, Poster (can create tags), Admin
-- Profile management and user permissions
+- **JWT-based authentication** with secure password hashing (bcrypt)
+- **Google OAuth 2.0** integration for easy login
+- **Role-based access control**:
+  - `User` - Browse and save recipes
+  - `Poster` - Create tags and recipes
+  - `Admin` - Full system access
+- **Session management** with auto-expiry warnings
+- **Account suspension** support for admins
 
 ### 📝 Recipe Management
 
-- Create, edit, and soft delete recipes
-- Visibility controls: Public, Shared (with specific users), Private
-- Rich content support: Images (Cloudinary), videos, detailed instructions
-- Rating and commenting system
-- Advanced search across titles, descriptions, and ingredients
+- **CRUD Operations**: Create, read, update, and soft-delete recipes
+- **Rich Content**: Support for images (Cloudinary), videos, detailed instructions
+- **Visibility Controls**: Public, Shared, and Private recipes
+- **Rating System**: 5-star ratings with user reviews
+- **Advanced Search**: Full-text search across titles, descriptions, and ingredients
+- **Tag Filtering**: Categorized tags for easy organization
+- **Recipe Restoration**: Recover deleted recipes from trash
+- **Favorites**: Save recipes to your personal collection
 
-### 🏷️ Tag System
+### 🤖 AI Assistant (Groq)
 
-- Categorized tags for recipe organization
-- Admin/Poster role management for tag creation
-- Search and filter by tags
-
-### 🤖 AI Assistant (Powered by Groq)
-
-- **Floating Action Button**: Pulsing FAB in bottom-right corner for AI writing assistance
-- **Personalized Recommendations**: Smart recipe suggestions based on user preferences
-- **Interactive Wizard**: Step-by-step question interface to find perfect recipes
-- **AI-Powered Content**: Generate recipe ideas and modifications using Groq AI
-- **Hebrew Support**: Full AI interaction in Hebrew language
+| Feature                   | Description                                          |
+| ------------------------- | ---------------------------------------------------- |
+| **Smart Recommendations** | Personalized recipe suggestions based on preferences |
+| **Interactive Wizard**    | Step-by-step question flow to find perfect recipes   |
+| **Tag Generation**        | AI-powered tag suggestions for new recipes           |
+| **Hebrew Support**        | Full conversational AI in Hebrew language            |
+| **Usage Dashboard**       | Monitor API usage with detailed stats (Admin only)   |
+| **Multiple Models**       | Support for Llama 3.3 70B, Mixtral, Gemma 2          |
 
 ### 🛒 Shopping Cart
 
-- Add ingredients directly from recipes to cart
-- Group items by recipe for organized shopping
-- Check off purchased items with visual feedback
-- Persistent cart storage per user
-- Quick navigation back to original recipes
+- **One-Click Add**: Add all ingredients from any recipe
+- **Smart Grouping**: Items organized by recipe
+- **Progress Tracking**: Check off purchased items
+- **Persistent Storage**: Cart saved per user
+- **Quick Navigation**: Jump back to recipe from cart
 
 ### 👨‍🍳 Cooking Mode
 
-- Full-screen distraction-free cooking experience
-- Large, readable text for ingredients and instructions
-- Auto-hide navigation for immersive cooking
-- Optimized for mobile devices during cooking
+- **Full-Screen Experience**: Distraction-free cooking view
+- **Large Typography**: Easy-to-read instructions
+- **Auto-Hide Navigation**: Maximum screen real estate
+- **Mobile Optimized**: Perfect for kitchen use
+- **Step-by-Step**: Clear progression through instructions
 
-### 🌐 Hebrew UI & RTL Support
+### 🌐 Internationalization
 
-- Complete Hebrew language interface
-- Right-to-left (RTL) layout support
-- Tailwind CSS with RTL plugins
-- Responsive design for all devices
+- **Hebrew UI**: Complete Hebrew language interface
+- **RTL Layout**: Full right-to-left support
+- **Localized Dates**: Hebrew date formatting
+- **Cultural Adaptation**: Israeli food categories and tags
 
 ### 📱 Additional Features
 
-- Toast notifications for user feedback
-- Image upload with Cloudinary integration
-- Video embedding support
-- Mobile-responsive design
-- Error handling and validation
+- **Open Graph**: Rich social media previews when sharing (WhatsApp, Facebook, Twitter)
+- **Image Optimization**: Auto-compression and Cloudinary CDN
+- **Toast Notifications**: Real-time user feedback
+- **Error Handling**: Graceful error management
+- **Mobile Responsive**: Works on all screen sizes
+- **Admin Panel**: User management, tag management, analytics
+
+---
 
 ## 🛠️ Tech Stack
 
 ### Backend
 
-- **Node.js** - JavaScript runtime
-- **Express.js** - Web framework with middleware
-- **MongoDB** - NoSQL database
-- **Mongoose** - MongoDB object modeling
-- **JWT** - JSON Web Token authentication
-- **Passport.js** - Authentication middleware (Google OAuth)
-- **Cloudinary** - Cloud image storage and manipulation
-- **express-validator** - Server-side validation
-- **bcryptjs** - Password hashing
-- **multer** - File upload handling
-- **cors** - Cross-origin resource sharing
-- **Groq SDK** - AI integration for recipe recommendations
+| Technology                                                                                                       | Purpose             | Version |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------- | ------- |
+| ![Node.js](https://img.shields.io/badge/-Node.js-339933?style=flat-square&logo=node.js&logoColor=white)          | Runtime environment | 18.x    |
+| ![Express](https://img.shields.io/badge/-Express-000000?style=flat-square&logo=express&logoColor=white)          | Web framework       | 4.x     |
+| ![MongoDB](https://img.shields.io/badge/-MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white)          | Database            | 7.x     |
+| ![Mongoose](https://img.shields.io/badge/-Mongoose-880000?style=flat-square)                                     | ODM                 | 8.x     |
+| ![JWT](https://img.shields.io/badge/-JWT-000000?style=flat-square&logo=jsonwebtokens&logoColor=white)            | Authentication      | -       |
+| ![Passport](https://img.shields.io/badge/-Passport-34E27A?style=flat-square)                                     | OAuth middleware    | -       |
+| ![Cloudinary](https://img.shields.io/badge/-Cloudinary-3448C5?style=flat-square&logo=cloudinary&logoColor=white) | Image storage       | -       |
+| ![Groq](https://img.shields.io/badge/-Groq-F55036?style=flat-square)                                             | AI integration      | -       |
+| ![Multer](https://img.shields.io/badge/-Multer-FF6600?style=flat-square)                                         | File uploads        | -       |
+| ![bcrypt](https://img.shields.io/badge/-bcrypt-003A70?style=flat-square)                                         | Password hashing    | -       |
 
 ### Frontend
 
-- **React 18** - UI library with hooks
-- **React Router DOM** - Client-side routing
-- **Tailwind CSS** - Utility-first CSS framework
-- **Axios** - HTTP client for API calls
-- **React Toastify** - Toast notifications
-- **Context API** - State management
-- **React Scripts** - Build and development tools
+| Technology                                                                                                              | Purpose          | Version |
+| ----------------------------------------------------------------------------------------------------------------------- | ---------------- | ------- |
+| ![React](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=black)                       | UI library       | 18.2.0  |
+| ![React Router](https://img.shields.io/badge/-React%20Router-CA4245?style=flat-square&logo=reactrouter&logoColor=white) | Routing          | 6.x     |
+| ![TailwindCSS](https://img.shields.io/badge/-TailwindCSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)     | Styling          | 3.x     |
+| ![Axios](https://img.shields.io/badge/-Axios-5A29E4?style=flat-square&logo=axios&logoColor=white)                       | HTTP client      | -       |
+| ![React Toastify](https://img.shields.io/badge/-Toastify-FFCA28?style=flat-square)                                      | Notifications    | -       |
+| ![Context API](https://img.shields.io/badge/-Context%20API-61DAFB?style=flat-square)                                    | State management | -       |
 
 ### Development Tools
 
-- **Nodemon** - Auto-restart server on changes
-- **Concurrently** - Run multiple scripts simultaneously
-- **ESLint** - Code linting
-- **dotenv** - Environment variable management
+| Tool                                                                                                       | Purpose              |
+| ---------------------------------------------------------------------------------------------------------- | -------------------- |
+| ![Nodemon](https://img.shields.io/badge/-Nodemon-76D04B?style=flat-square&logo=nodemon&logoColor=white)    | Auto-restart server  |
+| ![Concurrently](https://img.shields.io/badge/-Concurrently-333?style=flat-square)                          | Run multiple scripts |
+| ![ESLint](https://img.shields.io/badge/-ESLint-4B32C3?style=flat-square&logo=eslint&logoColor=white)       | Code linting         |
+| ![Prettier](https://img.shields.io/badge/-Prettier-F7B93E?style=flat-square&logo=prettier&logoColor=black) | Code formatting      |
 
-## 📋 Prerequisites
+---
 
-Before running this application, make sure you have the following installed:
+## 🏗️ Architecture
 
-- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
-- **MongoDB** (local installation or MongoDB Atlas cloud)
-- **npm** or **yarn** package manager
-- **Git** for cloning the repository
+### Project Structure
 
-## 🚀 Installation
+```
+RecipeMaster/
+├── 📁 client/                 # React frontend
+│   ├── 📁 public/             # Static assets
+│   └── 📁 src/
+│       ├── 📁 components/     # Reusable UI components
+│       ├── 📁 context/        # React Context providers
+│       ├── 📁 pages/          # Page components
+│       └── 📄 App.js          # Root component
+├── 📁 controllers/            # Business logic
+├── 📁 middleware/             # Auth, validation, error handling
+├── 📁 models/                 # MongoDB schemas
+├── 📁 routes/                 # API endpoints
+├── 📁 config/                 # Configuration files
+├── 📁 scripts/                # Utility scripts (seeding, etc.)
+├── 📄 server.js               # Application entry point
+└── 📄 package.json            # Dependencies
+```
 
-1. **Clone the repository**
+### System Overview
 
-   ```bash
-   git clone <repository-url>
-   cd RecipeMaster
-   ```
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         CLIENT (React)                          │
+├─────────────────────────────────────────────────────────────────┤
+│  Pages    │  Components  │  Context    │  Hooks     │  Utils    │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ HTTP/HTTPS (Axios)
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      SERVER (Express.js)                        │
+├─────────────────────────────────────────────────────────────────┤
+│  Routes   │  Controllers │  Middleware │  Models    │  Config   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+          ┌───────────────────┼───────────────────┐
+          ▼                   ▼                   ▼
+    ┌──────────┐       ┌──────────┐       ┌──────────┐
+    │ MongoDB  │       │Cloudinary│       │  Groq AI │
+    │ Database │       │  Images  │       │  Service │
+    └──────────┘       └──────────┘       └──────────┘
+```
 
-2. **Install server dependencies**
+---
 
-   ```bash
-   npm install
-   ```
+## 🚀 Getting Started
 
-3. **Install client dependencies**
+### Prerequisites
 
-   ```bash
-   cd client
-   npm install
-   cd ..
-   ```
+| Requirement | Version  | Check Command      |
+| ----------- | -------- | ------------------ |
+| Node.js     | ≥ 18.0.0 | `node --version`   |
+| npm         | ≥ 9.0.0  | `npm --version`    |
+| MongoDB     | ≥ 6.0    | `mongod --version` |
+| Git         | Any      | `git --version`    |
 
-4. **Set up environment variables**
-   Create a `.env` file in the root directory with the following variables:
-
-   ```env
-   # Database Configuration
-   MONGODB_URI=mongodb://localhost:27017/recipemaster
-   # Required for: Connecting to MongoDB database to store users, recipes, tags, and cart data
-
-   # JWT Authentication
-   JWT_SECRET=your_super_secure_jwt_secret_here_minimum_32_characters
-   # Required for: Signing and verifying JWT tokens for user authentication sessions
-
-   # Google OAuth (Optional but recommended)
-   GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-   GOOGLE_CLIENT_SECRET=your_google_client_secret
-   # Required for: Enabling Google OAuth login functionality
-
-   # Cloudinary Image Storage
-   CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-   CLOUDINARY_API_KEY=your_cloudinary_api_key
-   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-   # Required for: Uploading and storing recipe images in the cloud
-
-   # AI Integration (Groq)
-   GROQ_API_KEY=your_groq_api_key
-   # Required for: Powering the AI assistant and recipe recommendations
-   ```
-
-   For the client, create `client/.env`:
-
-   ```env
-   REACT_APP_API_URL=http://localhost:5000
-   # Required for: Telling the React app where the backend API is running
-   ```
-
-5. **Start MongoDB**
-   - For local MongoDB: Ensure MongoDB service is running
-   - For MongoDB Atlas: Your connection string should be in MONGODB_URI
-
-6. **Seed initial data (optional)**
-   ```bash
-   npm run seed:tags
-   ```
-   This populates the database with initial tag categories.
-
-## ▶️ Running the Application
-
-### Development Mode (Recommended)
+### Quick Start
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/lidormalich/RecipeMaster.git
+cd RecipeMaster
+
+# 2. Install dependencies
+npm install
+cd client && npm install && cd ..
+
+# 3. Set up environment variables (see Configuration section)
+# Create .env file with required variables
+
+# 4. Seed initial tags (optional)
+npm run seed:tags
+
+# 5. Start development server
 npm run dev
-```
-
-This starts both the backend server (port 5000) and frontend client (port 3000) simultaneously using concurrently.
-
-### Production Mode
-
-```bash
-# Build the client
-cd client
-npm run build
-cd ..
-
-# Start the server
-npm start
-```
-
-### Individual Services
-
-```bash
-# Start only the backend server
-npm run server
-
-# Start only the frontend client (in another terminal)
-npm run client
 ```
 
 The application will be available at:
@@ -235,429 +304,210 @@ The application will be available at:
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:5000
 
-## 📡 API Endpoints
+### Running Options
 
-### Authentication (`/api/auth`)
+| Command             | Description                                |
+| ------------------- | ------------------------------------------ |
+| `npm run dev`       | Start both server and client (development) |
+| `npm run server`    | Start backend only                         |
+| `npm run client`    | Start frontend only                        |
+| `npm start`         | Start production server                    |
+| `npm run seed:tags` | Seed database with tags                    |
 
-- `POST /register` - Register new user account
-- `POST /login` - Authenticate user login
-- `GET /google` - Initiate Google OAuth flow
-- `GET /google/callback` - Google OAuth callback
-- `GET /me` - Get current authenticated user info
+---
 
-### Recipes (`/api/recipes`)
+## ⚙️ Configuration
 
-- `GET /` - Get all public recipes (with search/filter support)
-- `GET /:shortId` - Get single recipe by short ID
-- `POST /` - Create new recipe (authentication required)
-- `PUT /:shortId` - Update existing recipe (owner only)
-- `DELETE /:shortId` - Soft delete recipe (owner only)
-- `GET /user/:userId` - Get recipes by specific user
+### Environment Variables
 
-### Tags (`/api/tags`)
+Create a `.env` file in the root directory:
 
-- `GET /` - Get all available tags
-- `POST /` - Create new tag (Poster/Admin roles only)
+```env
+# ═══════════════════════════════════════════════════════════════
+# DATABASE
+# ═══════════════════════════════════════════════════════════════
+MONGODB_URI=mongodb://localhost:27017/recipemaster
+# For MongoDB Atlas: mongodb+srv://user:pass@cluster.mongodb.net/recipemaster
 
-### Shopping Cart (`/api/cart`)
+# ═══════════════════════════════════════════════════════════════
+# AUTHENTICATION
+# ═══════════════════════════════════════════════════════════════
+JWT_SECRET=your_super_secure_jwt_secret_minimum_32_characters
+# Generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
-- `GET /` - Get user's shopping cart
-- `POST /add` - Add ingredients to cart from recipe
-- `PATCH /:itemId/toggle` - Mark item as purchased/unpurchased
-- `DELETE /:itemId` - Remove single item from cart
-- `DELETE /clear/all` - Clear entire cart
+# ═══════════════════════════════════════════════════════════════
+# GOOGLE OAUTH (Optional)
+# ═══════════════════════════════════════════════════════════════
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+# Get from: https://console.cloud.google.com/apis/credentials
 
-### Admin (`/api/admin`)
+# ═══════════════════════════════════════════════════════════════
+# CLOUDINARY (Image Storage)
+# ═══════════════════════════════════════════════════════════════
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+# Get from: https://cloudinary.com/console
 
-- `PATCH /role` - Update user role (Admin only)
-- `GET /users` - Get all users (Admin only)
+# ═══════════════════════════════════════════════════════════════
+# AI INTEGRATION (Groq)
+# ═══════════════════════════════════════════════════════════════
+GROQ_API_KEY=gsk_your_groq_api_key
+# Get from: https://console.groq.com/keys
 
-## 🎨 Database Schema
-
-### User Model
-
-```javascript
-{
-  name: String,           // User's display name
-  email: String,          // Unique email address
-  password: String,       // Hashed password (bcrypt)
-  googleId: String,       // Google OAuth ID (optional)
-  role: String,           // 'user', 'poster', 'admin'
-  permissions: [String],  // Array of permission strings
-  createdAt: Date,        // Auto-generated timestamp
-  updatedAt: Date         // Auto-updated timestamp
-}
+# ═══════════════════════════════════════════════════════════════
+# APPLICATION
+# ═══════════════════════════════════════════════════════════════
+PORT=5000
+NODE_ENV=development
+BASE_URL=http://localhost:3000
 ```
 
-### Recipe Model
+### Client Environment (Optional)
 
-```javascript
-{
-  shortId: String,        // Unique short identifier (nanoid)
-  title: String,          // Recipe title
-  description: String,    // Recipe description
-  ingredients: [String],  // Array of ingredient strings
-  instructions: [String], // Array of instruction steps
-  mainImage: String,      // Cloudinary image URL
-  additionalImages: [String], // Array of additional image URLs
-  videoUrl: String,       // YouTube/video embed URL
-  tags: [{                // Reference to Tag model
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Tag'
-  }],
-  author: {               // Reference to User model
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  visibility: String,     // 'public', 'shared', 'private'
-  allowComments: Boolean, // Whether comments are allowed
-  isDeleted: Boolean,     // Soft delete flag
-  ratings: [{             // User ratings and comments
-    user: ObjectId,
-    rating: Number,       // 1-5 stars
-    comment: String,
-    createdAt: Date
-  }],
-  createdAt: Date,
-  updatedAt: Date
-}
+Create `client/.env`:
+
+```env
+REACT_APP_API_URL=http://localhost:5000
 ```
 
-### Tag Model
+---
 
-```javascript
-{
-  name: String,           // Tag name (e.g., "Italian", "Dessert")
-  category: String,       // Category grouping (e.g., "Cuisine", "Meal Type")
-  createdAt: Date,
-  updatedAt: Date
-}
+## 📡 API Documentation
+
+### Base URL
+
+```
+Development: http://localhost:5000/api
+Production:  https://recipemaster.onrender.com/api
 ```
 
-### Cart Model
+### Authentication Endpoints
 
-```javascript
-{
-  user: ObjectId,         // Reference to User
-  items: [{
-    ingredient: String,   // Ingredient text
-    recipe: ObjectId,     // Reference to Recipe
-    recipeTitle: String,  // Cached recipe title
-    shortId: String,      // Cached recipe short ID
-    purchased: Boolean    // Purchase status
-  }],
-  createdAt: Date,
-  updatedAt: Date
-}
-```
+| Method | Endpoint                | Description       | Auth |
+| ------ | ----------------------- | ----------------- | ---- |
+| `POST` | `/auth/register`        | Register new user | No   |
+| `POST` | `/auth/login`           | Login user        | No   |
+| `GET`  | `/auth/me`              | Get current user  | Yes  |
+| `GET`  | `/auth/google`          | Google OAuth      | No   |
+| `GET`  | `/auth/google/callback` | OAuth callback    | No   |
 
-## 📖 Usage Guide
+### Recipe Endpoints
 
-### Getting Started
+| Method   | Endpoint                      | Description            | Auth     |
+| -------- | ----------------------------- | ---------------------- | -------- |
+| `GET`    | `/recipes`                    | Get all public recipes | Optional |
+| `GET`    | `/recipes/:shortId`           | Get single recipe      | Optional |
+| `POST`   | `/recipes`                    | Create new recipe      | Yes      |
+| `PUT`    | `/recipes/:shortId`           | Update recipe          | Owner    |
+| `DELETE` | `/recipes/:shortId`           | Soft delete recipe     | Owner    |
+| `GET`    | `/recipes/user/:userId`       | Get user's recipes     | Optional |
+| `GET`    | `/recipes/deleted/all`        | Get deleted recipes    | Yes      |
+| `PATCH`  | `/recipes/:shortId/restore`   | Restore recipe         | Owner    |
+| `DELETE` | `/recipes/:shortId/permanent` | Permanent delete       | Owner    |
 
-1. **Register/Login**: Create an account or sign in with Google OAuth
-2. **Browse Recipes**: Explore public recipes on the home page
-3. **Search & Filter**: Use the search bar and tags to find specific recipes
-4. **Create Recipe**: Click "Create Recipe" to add your own recipes
-5. **AI Assistant**: Use the floating AI button for recipe recommendations
+### AI Endpoints
 
-### Recipe Management
+| Method | Endpoint                  | Description            | Auth |
+| ------ | ------------------------- | ---------------------- | ---- |
+| `POST` | `/recipes/ai-recommend`   | Get AI recommendations | No   |
+| `GET`  | `/recipes/available-tags` | Get available tags     | No   |
+| `POST` | `/recipes/search-by-tags` | Search by tags         | No   |
 
-- **Visibility Settings**: Choose who can see your recipes (Public/Shared/Private)
-- **Rich Content**: Add images, videos, and detailed instructions
-- **Tags**: Categorize your recipes for better discoverability
-- **Ratings**: Rate and comment on recipes you enjoy
+### Cart Endpoints
 
-### Shopping Cart Features
+| Method   | Endpoint                 | Description      | Auth |
+| -------- | ------------------------ | ---------------- | ---- |
+| `GET`    | `/recipes/user/cart`     | Get user's cart  | Yes  |
+| `POST`   | `/recipes/:shortId/cart` | Add to cart      | Yes  |
+| `DELETE` | `/recipes/:shortId/cart` | Remove from cart | Yes  |
 
-- **Add Ingredients**: Click the cart icon on any recipe to add ingredients
-- **Organize Shopping**: Items are grouped by recipe for efficient shopping
-- **Track Progress**: Check off items as you purchase them
-- **Quick Access**: Navigate back to recipes directly from the cart
+### Admin Endpoints
 
-### Cooking Mode
+| Method  | Endpoint                   | Description          | Auth  |
+| ------- | -------------------------- | -------------------- | ----- |
+| `GET`   | `/admin/users`             | Get all users        | Admin |
+| `PATCH` | `/admin/users/:id/role`    | Update user role     | Admin |
+| `PATCH` | `/admin/users/:id/suspend` | Suspend user         | Admin |
+| `GET`   | `/groq/usage`              | Get API usage stats  | Admin |
+| `GET`   | `/groq/available-months`   | Get months with data | Admin |
 
-- **Full Screen**: Click "Cooking Mode" for distraction-free cooking
-- **Large Text**: Easy-to-read ingredients and instructions
-- **Step Navigation**: Clear progression through cooking steps
+### Example Requests
 
-### AI Assistant Usage
-
-- **Recipe Discovery**: Answer questions to find personalized recipe suggestions
-- **Content Generation**: Get AI help for recipe ideas and modifications
-- **Hebrew Support**: Full conversational AI in Hebrew
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### MongoDB Connection Issues
+<details>
+<summary><b>Register User</b></summary>
 
 ```bash
-# Check if MongoDB is running
-brew services list | grep mongodb  # macOS
-sudo systemctl status mongod      # Linux
-# Windows: Check Services panel
-
-# For MongoDB Atlas, verify connection string format
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/recipemaster
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "securepassword123"
+  }'
 ```
 
-#### Port Already in Use
+</details>
+
+<details>
+<summary><b>Create Recipe</b></summary>
 
 ```bash
-# Find process using port 5000
-lsof -i :5000  # macOS/Linux
-netstat -ano | findstr :5000  # Windows
-
-# Kill the process and restart
-npm run dev
+curl -X POST http://localhost:5000/api/recipes \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Homemade Pasta",
+    "description": "Delicious fresh pasta",
+    "ingredients": "2 cups flour\n3 eggs\n1 tsp salt",
+    "instructions": "Mix and knead for 10 minutes...",
+    "visibility": "Public"
+  }'
 ```
 
-#### Environment Variables Not Loading
+</details>
 
-- Ensure `.env` file is in the root directory (not `client/` folder)
-- No spaces around `=` in `.env` file
-- Restart the development server after adding new variables
+---
 
-#### Google OAuth Not Working
+## 🗄️ Database Schema
 
-- Verify Google Cloud Console credentials
-- Ensure callback URL matches: `http://localhost:5000/api/auth/google/callback`
-- Check that domain is authorized in Google Console
+### Models Overview
 
-#### Cloudinary Upload Issues
-
-- Verify all three Cloudinary credentials are correct
-- Check Cloudinary dashboard for upload limits
-- Ensure images are under size limits (default 10MB)
-
-#### AI Features Not Working
-
-- Verify `GROQ_API_KEY` is set correctly
-- Check Groq API status and rate limits
-- Ensure internet connection for AI requests
-
-### Development Tips
-
-```bash
-# Clear node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# Clear client build cache
-cd client
-rm -rf node_modules build
-npm install
-
-# Check for syntax errors
-npm run lint  # if ESLint is configured
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│    Users     │     │   Recipes    │     │    Tags      │
+├──────────────┤     ├──────────────┤     ├──────────────┤
+│ _id          │◄────┤ author       │     │ globalId     │
+│ name         │     │ shortId      │     │ name         │
+│ email        │     │ title        │     │ category     │
+│ password     │     │ tags[]───────┼────►│              │
+│ role         │     │ visibility   │     └──────────────┘
+│ favorites[]  │     │ isDeleted    │
+└──────────────┘     └──────────────┘
+                            │
+┌──────────────┐            │
+│  GroqUsage   │            │
+├──────────────┤            │
+│ model        │            │
+│ tokens       │            │
+│ endpoint     │            │
+│ responseTime │            │
+└──────────────┘            │
 ```
 
-## � API Examples
-
-### Authentication
-
-#### Register User
-
-```bash
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "securepassword123"
-}
-```
-
-#### Login
-
-```bash
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "securepassword123"
-}
-```
-
-### Recipes
-
-#### Get All Recipes
-
-```bash
-GET /api/recipes?search=pasta&page=1&limit=10
-Authorization: Bearer YOUR_JWT_TOKEN
-```
-
-#### Create Recipe
-
-```bash
-POST /api/recipes
-Authorization: Bearer YOUR_JWT_TOKEN
-Content-Type: multipart/form-data
-
-{
-  title: "Homemade Pasta",
-  description: "Delicious homemade pasta recipe",
-  ingredients: ["2 cups flour", "3 eggs", "1 tsp salt"],
-  instructions: ["Mix ingredients", "Knead dough", "Cook in boiling water"],
-  tags: ["Italian", "Pasta"],
-  visibility: "public"
-}
-```
-
-#### Add to Cart
-
-```bash
-POST /api/cart/add
-Authorization: Bearer YOUR_JWT_TOKEN
-Content-Type: application/json
-
-{
-  "ingredients": ["2 cups flour", "3 eggs"],
-  "recipeId": "507f1f77bcf86cd799439011",
-  "recipeTitle": "Homemade Pasta",
-  "shortId": "abc123"
-}
-```
-
-## ❓ FAQ
-
-### General Questions
-
-**Q: Is RecipeMaster free to use?**
-A: Yes, RecipeMaster is completely free and open-source.
-
-**Q: Do I need to create an account to browse recipes?**
-A: You can browse public recipes without an account, but you'll need to register to create recipes, use the shopping cart, or access AI features.
-
-**Q: Is the AI assistant available in Hebrew?**
-A: Yes! The AI assistant fully supports Hebrew language interactions.
-
-### Technical Questions
-
-**Q: What are the system requirements?**
-A: Node.js 16+, MongoDB, and a modern web browser.
-
-**Q: Can I deploy this to my own server?**
-A: Yes, see the deployment section for detailed instructions.
-
-**Q: How do I reset my password?**
-A: Password reset functionality is planned for future releases. Currently, please contact support.
-
-**Q: Are my recipes private?**
-A: You can set recipes to Public, Shared, or Private visibility levels.
-
-### Troubleshooting
-
-**Q: Images aren't uploading**
-A: Check your Cloudinary credentials and ensure your account has upload permissions.
-
-**Q: AI features aren't working**
-A: Verify your GROQ_API_KEY is set correctly and you have internet connection.
-
-**Q: Getting 500 errors**
-A: Check server logs and ensure all environment variables are configured.
-
-## 📝 Changelog
-
-### Version 1.0.0 (Current)
-
-- ✅ Complete MERN stack implementation
-- ✅ AI-powered recipe recommendations
-- ✅ Shopping cart functionality
-- ✅ Cooking mode with full-screen experience
-- ✅ Hebrew UI with RTL support
-- ✅ Google OAuth integration
-- ✅ Cloudinary image uploads
-- ✅ Tag system with categories
-- ✅ User roles and permissions
-- ✅ Responsive design with Tailwind CSS
-
-### Future Releases
-
-- 🔄 Password reset functionality
-- 🔄 Social features (follow, like)
-- 🔄 Meal planning
-- 🔄 Mobile app development
-
-## 🗺️ Roadmap
-
-### Phase 1 (Completed)
-
-- [x] Basic MERN setup
-- [x] User authentication
-- [x] Recipe CRUD operations
-- [x] Tag system
-- [x] Image uploads
-
-### Phase 2 (Completed)
-
-- [x] AI integration
-- [x] Shopping cart
-- [x] Cooking mode
-- [x] Hebrew localization
-
-### Phase 3 (In Progress)
-
-- [ ] Advanced search filters
-- [ ] Social features
-- [ ] Meal planning
-- [ ] Mobile app development
-
-### Phase 4 (Planned)
-
-- [ ] Nutrition API integration
-- [ ] Recipe scaling
-- [ ] Offline mode
-- [ ] Advanced analytics
+---
 
 ## 🚀 Deployment
 
-### Environment Setup for Production
+### Render.com (Recommended)
 
-#### Render.com Deployment
-
-1. **Connect Repository**: Link your GitHub repo to Render
-2. **Environment Variables**: Add all required env vars in Render dashboard
-3. **Build Command**: `npm install && cd client && npm install && npm run build && cd ..`
-4. **Start Command**: `npm start`
-
-#### Heroku Deployment
-
-```bash
-# Install Heroku CLI
-npm install -g heroku
-
-# Login and create app
-heroku login
-heroku create your-app-name
-
-# Set environment variables
-heroku config:set MONGODB_URI="your_mongodb_atlas_uri"
-heroku config:set JWT_SECRET="your_secure_jwt_secret"
-# ... set all other required variables
-
-# Deploy
-git push heroku main
-```
-
-#### Vercel Deployment (Frontend Only)
-
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy client
-cd client
-vercel --prod
-
-# Set environment variables in Vercel dashboard
-# REACT_APP_API_URL=https://your-backend-url.onrender.com
-```
+1. **Connect GitHub Repository**
+2. **Configure Build Settings:**
+   - Build Command: `npm install && cd client && npm install && npm run build && cd ..`
+   - Start Command: `npm start`
+3. **Set Environment Variables** in dashboard
+4. **Deploy!**
 
 ### Production Environment Variables
 
@@ -671,145 +521,134 @@ CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
 GROQ_API_KEY=...
+BASE_URL=https://your-domain.com
 ```
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Here's how you can help make RecipeMaster even better:
-
-### Ways to Contribute
-
-- **🐛 Bug Reports**: Found a bug? [Open an issue](https://github.com/yourusername/recipemaster/issues) with detailed steps to reproduce
-- **💡 Feature Requests**: Have an idea? [Create a feature request](https://github.com/yourusername/recipemaster/issues)
-- **📝 Documentation**: Help improve documentation, tutorials, or examples
-- **🔧 Code Contributions**: Fix bugs, add features, or improve performance
-- **🎨 UI/UX Improvements**: Enhance the user interface and experience
-- **🌐 Translations**: Help translate the app to new languages
-
-### Development Setup
-
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/yourusername/recipemaster.git
-   cd recipemaster
-   ```
-3. **Set up the development environment** (see Installation section above)
-4. **Create a feature branch**:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-5. **Make your changes** and test thoroughly
-6. **Commit your changes**:
-   ```bash
-   git commit -m "Add: Brief description of your changes"
-   ```
-7. **Push to your fork**:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-8. **Create a Pull Request** on GitHub
-
-### Code Guidelines
-
-- Follow the existing code style and conventions
-- Write clear, concise commit messages
-- Add tests for new features
-- Update documentation for API changes
-- Ensure all tests pass before submitting
-
-### Reporting Issues
-
-When reporting bugs, please include:
-
-- Steps to reproduce the issue
-- Expected vs. actual behavior
-- Browser/OS information
-- Screenshots if applicable
-- Console errors or logs
-
-### License
-
-By contributing to RecipeMaster, you agree that your contributions will be licensed under the same license as the project.
-
-## 📞 Support
-
-### Getting Help
-
-If you need help with RecipeMaster, here are several ways to get support:
-
-#### 📧 Contact Information
-
-- **Email**: support@recipemaster.com
-- **GitHub Issues**: [Report bugs or request features](https://github.com/yourusername/recipemaster/issues)
-- **Discussions**: [Join community discussions](https://github.com/yourusername/recipemaster/discussions)
-
-#### 🆘 Common Support Topics
-
-- **Installation Issues**: Check the [Installation](#-installation) section
-- **API Questions**: See [API Documentation](#-api-endpoints)
-- **Troubleshooting**: Visit the [Troubleshooting](#-troubleshooting) section
-- **Feature Requests**: Use GitHub Issues with the "enhancement" label
-
-#### 📚 Resources
-
-- **Documentation**: This README and inline code documentation
-- **API Examples**: See the [API Examples](#-api-examples) section
-- **FAQ**: Check the [Frequently Asked Questions](#-faq) section
-
-### Community Guidelines
-
-- Be respectful and constructive in all communications
-- Search existing issues before creating new ones
-- Provide detailed information when reporting problems
-- Help others when you can
-
-## 🙌 Credits
-
-### Core Team
-
-- **Lidor Cohen** - Project Lead & Full-Stack Developer
-
-### Technologies & Libraries
-
-RecipeMaster is built with the help of these amazing open-source projects:
-
-#### Backend
-
-- **[Express.js](https://expressjs.com/)** - Fast, unopinionated web framework
-- **[MongoDB](https://www.mongodb.com/)** - NoSQL database
-- **[Mongoose](https://mongoosejs.com/)** - MongoDB object modeling
-- **[JWT](https://jwt.io/)** - JSON Web Token implementation
-- **[Passport.js](https://www.passportjs.org/)** - Authentication middleware
-- **[bcryptjs](https://www.npmjs.com/package/bcryptjs)** - Password hashing
-- **[express-validator](https://express-validator.github.io/)** - Server-side validation
-
-#### Frontend
-
-- **[React](https://reactjs.org/)** - UI library
-- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
-- **[Axios](https://axios-http.com/)** - HTTP client
-- **[React Router](https://reactrouter.com/)** - Declarative routing
-- **[React Toastify](https://fkhadra.github.io/react-toastify/)** - Toast notifications
-
-#### AI & Media
-
-- **[Groq](https://groq.com/)** - AI language model API
-- **[Cloudinary](https://cloudinary.com/)** - Cloud image management
-
-#### Development Tools
-
-- **[Nodemon](https://nodemon.io/)** - Auto-restart for Node.js
-- **[Concurrently](https://www.npmjs.com/package/concurrently)** - Run multiple commands
-- **[ESLint](https://eslint.org/)** - Code linting
-
-### Special Thanks
-
-- **Open Source Community** - For inspiration and learning opportunities
-- **React Community** - For excellent documentation and ecosystem
-- **MongoDB Community** - For database expertise and support
-- **All Contributors** - For making RecipeMaster better every day
 
 ---
 
-**Built with ❤️ for food lovers worldwide** 🍳✨
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m "feat: add amazing feature"`
+4. **Push** to the branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
+
+### Commit Convention
+
+| Type       | Description                  |
+| ---------- | ---------------------------- |
+| `feat`     | New feature                  |
+| `fix`      | Bug fix                      |
+| `docs`     | Documentation                |
+| `style`    | Code style (no logic change) |
+| `refactor` | Code refactoring             |
+| `test`     | Adding tests                 |
+| `chore`    | Maintenance                  |
+
+---
+
+## 🗺️ Roadmap
+
+### Completed ✅
+
+- [x] Core MERN application
+- [x] JWT + OAuth authentication
+- [x] Recipe CRUD with visibility
+- [x] AI-powered recommendations
+- [x] Shopping cart
+- [x] Cooking mode
+- [x] Hebrew RTL support
+- [x] Open Graph meta tags
+- [x] Admin dashboard
+- [x] Groq usage tracking
+
+### In Progress 🚧
+
+- [ ] Advanced search filters
+- [ ] Recipe import from URL
+- [ ] Nutrition information
+
+### Planned 📋
+
+- [ ] Mobile app (React Native)
+- [ ] Meal planning calendar
+- [ ] Social features (follow, share)
+- [ ] Multi-language support
+- [ ] PWA offline mode
+
+---
+
+## ❓ FAQ
+
+<details>
+<summary><b>Is RecipeMaster free to use?</b></summary>
+
+Yes! RecipeMaster is completely free and open-source under the MIT license.
+
+</details>
+
+<details>
+<summary><b>Do I need an account to browse recipes?</b></summary>
+
+No, you can browse public recipes without an account. However, you'll need to register to create recipes, use the cart, or access AI features.
+
+</details>
+
+<details>
+<summary><b>What AI models are supported?</b></summary>
+
+We use Groq's free tier with models like Llama 3.3 70B, Mixtral 8x7B, and Gemma 2. See the admin dashboard for detailed usage stats.
+
+</details>
+
+<details>
+<summary><b>Can I self-host RecipeMaster?</b></summary>
+
+Absolutely! Follow the installation guide and you can run it on any server with Node.js and MongoDB.
+
+</details>
+
+---
+
+## 🆘 Support
+
+- **Documentation**: This README
+- **Bug Reports**: [GitHub Issues](https://github.com/lidormalich/recipemaster/issues)
+- **Feature Requests**: [GitHub Discussions](https://github.com/lidormalich/recipemaster/discussions)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙌 Credits
+
+### Creator
+
+**Lidor Cohen** - Full-Stack Developer
+
+- GitHub: [@lidormalich](https://github.com/lidormalich)
+
+### Built With
+
+- **Backend**: Node.js, Express, MongoDB, Mongoose, JWT, Passport.js
+- **Frontend**: React 18, Tailwind CSS, React Router, Axios
+- **AI**: Groq (Llama 3.3 70B)
+- **Media**: Cloudinary
+- **Auth**: Google OAuth 2.0
+
+---
+
+<div align="center">
+
+**Made with ❤️ for food lovers worldwide** 🍳✨
+
+[![Star this repo](https://img.shields.io/github/stars/lidormalich/recipemaster?style=social)](https://github.com/lidormalich/recipemaster)
+
+</div>

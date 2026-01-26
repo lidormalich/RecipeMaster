@@ -3,17 +3,75 @@ import {useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {useAuth} from '../context/AuthContext';
 
+// Groq Free Tier Monthly Limits (estimated based on daily limits * 30)
+const MONTHLY_LIMITS = {
+  requests: 432000, // 14,400/day * 30
+  tokens: 15000000, // ~500K/day * 30
+};
+
+// Model information
+const MODEL_INFO = {
+  'llama-3.3-70b-versatile': {
+    name: 'Llama 3.3 70B Versatile',
+    description: 'מודל גדול ורב-תכליתי מ-Meta. מתאים למשימות מורכבות הדורשות הבנה עמוקה וכתיבה איכותית.',
+    contextWindow: '128K tokens',
+    speed: 'מהיר',
+    bestFor: 'כתיבה יצירתית, שאלות מורכבות, ניתוח',
+    free: true,
+  },
+  'llama-3.1-70b-versatile': {
+    name: 'Llama 3.1 70B Versatile',
+    description: 'גרסה קודמת של Llama. עדיין מצוין למשימות כלליות.',
+    contextWindow: '128K tokens',
+    speed: 'מהיר',
+    bestFor: 'משימות כלליות, שיחות',
+    free: true,
+  },
+  'llama-3.1-8b-instant': {
+    name: 'Llama 3.1 8B Instant',
+    description: 'מודל קטן ומהיר במיוחד. מושלם לתשובות מהירות ופשוטות.',
+    contextWindow: '128K tokens',
+    speed: 'מהיר מאוד',
+    bestFor: 'תשובות מהירות, סיווג, משימות פשוטות',
+    free: true,
+  },
+  'mixtral-8x7b-32768': {
+    name: 'Mixtral 8x7B',
+    description: 'מודל MoE (Mixture of Experts) מ-Mistral AI. מאזן מצוין בין מהירות לאיכות.',
+    contextWindow: '32K tokens',
+    speed: 'מהיר',
+    bestFor: 'קוד, שפות מרובות, משימות טכניות',
+    free: true,
+  },
+  'gemma2-9b-it': {
+    name: 'Gemma 2 9B',
+    description: 'מודל קטן מ-Google. יעיל מאוד למשימות בסיסיות.',
+    contextWindow: '8K tokens',
+    speed: 'מהיר מאוד',
+    bestFor: 'משימות פשוטות, chatbots',
+    free: true,
+  },
+  'llama-guard-3-8b': {
+    name: 'Llama Guard 3 8B',
+    description: 'מודל אבטחה לזיהוי תוכן בעייתי. לא מיועד לשיחות רגילות.',
+    contextWindow: '8K tokens',
+    speed: 'מהיר',
+    bestFor: 'בדיקת תוכן, אבטחה',
+    free: true,
+  },
+};
+
 export default function GroqDashboard() {
-  const {user} = useAuth();
+  const {user, loading: authLoading} = useAuth();
   const navigate = useNavigate();
   const [usage, setUsage] = useState(null);
-  const [availableMonths, setAvailableMonths] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+
     // Check if user is admin
     if (!user) {
       navigate('/login');
@@ -24,36 +82,18 @@ export default function GroqDashboard() {
       return;
     }
 
-    fetchAvailableMonths();
     fetchUsage();
-    const interval = setInterval(fetchUsage, 60000); // Refresh every minute
-    return () => clearInterval(interval);
-  }, [user, navigate]);
-
-  useEffect(() => {
-    if (user && user.role === 'Admin') {
-      fetchUsage();
-    }
-  }, [selectedYear, selectedMonth]);
-
-  const fetchAvailableMonths = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/groq/available-months', {
-        headers: {Authorization: `Bearer ${token}`},
-      });
-      setAvailableMonths(response.data);
-    } catch (err) {
-      console.error('Error fetching available months:', err);
-    }
-  };
+  }, [user, authLoading, navigate]);
 
   const fetchUsage = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem('token');
+      // Always fetch current month
+      const now = new Date();
       const response = await axios.get('/api/groq/usage', {
         headers: {Authorization: `Bearer ${token}`},
-        params: {year: selectedYear, month: selectedMonth},
+        params: {year: now.getFullYear(), month: now.getMonth() + 1},
       });
       setUsage(response.data);
       setError(null);
@@ -73,12 +113,18 @@ export default function GroqDashboard() {
     return ((used / limit) * 100).toFixed(1);
   };
 
-  if (loading) {
+  const getProgressColor = percentage => {
+    if (percentage >= 90) return '#ef4444';
+    if (percentage >= 70) return '#eab308';
+    return '#22c55e';
+  };
+
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600">טוען נתוני שימוש...</p>
+          <p className="mt-4 text-gray-600">{authLoading ? 'בודק הרשאות...' : 'טוען נתוני שימוש...'}</p>
         </div>
       </div>
     );
@@ -100,6 +146,7 @@ export default function GroqDashboard() {
     );
   }
 
+  // Calculate percentages
   const todayRequestPercentage = getPercentage(
     usage?.today?.requests,
     usage?.limits?.requestLimit,
@@ -117,57 +164,86 @@ export default function GroqDashboard() {
     usage?.limits?.tpmLimit,
   );
 
+  // Monthly percentages
+  const monthlyRequestPercentage = getPercentage(
+    usage?.monthly?.totalRequests,
+    MONTHLY_LIMITS.requests,
+  );
+  const monthlyTokenPercentage = getPercentage(
+    usage?.monthly?.totalTokens,
+    MONTHLY_LIMITS.tokens,
+  );
+
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-            <span className="text-4xl">📊</span>
-            לוח בקרת Groq API
-          </h1>
-          <p className="text-gray-500 mt-1">מעקב אחר שימוש ומגבלות - {usage?.monthName} {usage?.year}</p>
-        </div>
-
-        {/* Month Selector */}
-        <div className="flex items-center gap-2">
-          <select
-            value={selectedMonth}
-            onChange={e => setSelectedMonth(parseInt(e.target.value))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => (
-              <option key={m} value={m}>
-                {new Date(2000, m - 1).toLocaleString('he-IL', {month: 'long'})}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedYear}
-            onChange={e => setSelectedYear(parseInt(e.target.value))}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-            {[2024, 2025, 2026].map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+          <span className="text-4xl">📊</span>
+          לוח בקרת Groq API
+        </h1>
+        <p className="text-gray-500 mt-1">מעקב אחר שימוש ומגבלות - {usage?.monthName} {usage?.year}</p>
       </div>
 
-      {/* Monthly Summary */}
+      {/* Monthly Summary with Limits */}
       <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl shadow-lg p-6 mb-8 text-white">
         <h2 className="text-xl font-bold mb-4">סיכום חודשי - {usage?.monthName} {usage?.year}</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Monthly Requests */}
           <div className="bg-white/10 rounded-xl p-4">
-            <div className="text-3xl font-bold">{formatNumber(usage?.monthly?.totalRequests)}</div>
-            <div className="text-purple-200 text-sm">בקשות</div>
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <div className="text-3xl font-bold">{formatNumber(usage?.monthly?.totalRequests)}</div>
+                <div className="text-purple-200 text-sm">בקשות חודשיות</div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">{monthlyRequestPercentage}%</div>
+                <div className="text-purple-200 text-xs">מתוך {formatNumber(MONTHLY_LIMITS.requests)}</div>
+              </div>
+            </div>
+            <div className="bg-white/20 rounded-full h-3 mt-2">
+              <div
+                className="h-3 rounded-full transition-all"
+                style={{
+                  width: `${Math.min(monthlyRequestPercentage, 100)}%`,
+                  backgroundColor: getProgressColor(monthlyRequestPercentage),
+                }}></div>
+            </div>
           </div>
+
+          {/* Monthly Tokens */}
           <div className="bg-white/10 rounded-xl p-4">
-            <div className="text-3xl font-bold">{formatNumber(usage?.monthly?.totalTokens)}</div>
-            <div className="text-purple-200 text-sm">טוקנים</div>
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <div className="text-3xl font-bold">{formatNumber(usage?.monthly?.totalTokens)}</div>
+                <div className="text-purple-200 text-sm">טוקנים חודשיים</div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">{monthlyTokenPercentage}%</div>
+                <div className="text-purple-200 text-xs">מתוך {formatNumber(MONTHLY_LIMITS.tokens)}</div>
+              </div>
+            </div>
+            <div className="bg-white/20 rounded-full h-3 mt-2">
+              <div
+                className="h-3 rounded-full transition-all"
+                style={{
+                  width: `${Math.min(monthlyTokenPercentage, 100)}%`,
+                  backgroundColor: getProgressColor(monthlyTokenPercentage),
+                }}></div>
+            </div>
           </div>
+
+          {/* Additional Monthly Stats */}
           <div className="bg-white/10 rounded-xl p-4">
             <div className="text-3xl font-bold">{formatNumber(usage?.monthly?.successfulRequests)}</div>
             <div className="text-purple-200 text-sm">בקשות מוצלחות</div>
+            <div className="text-xs text-purple-300 mt-1">
+              {usage?.monthly?.totalRequests > 0
+                ? `${((usage?.monthly?.successfulRequests / usage?.monthly?.totalRequests) * 100).toFixed(1)}% הצלחה`
+                : '0% הצלחה'}
+            </div>
           </div>
+
           <div className="bg-white/10 rounded-xl p-4">
             <div className="text-3xl font-bold">{usage?.monthly?.avgResponseTime || 0}ms</div>
             <div className="text-purple-200 text-sm">זמן תגובה ממוצע</div>
@@ -197,12 +273,7 @@ export default function GroqDashboard() {
               className="h-2 rounded-full transition-all"
               style={{
                 width: `${Math.min(todayRequestPercentage, 100)}%`,
-                backgroundColor:
-                  todayRequestPercentage >= 90
-                    ? '#ef4444'
-                    : todayRequestPercentage >= 70
-                      ? '#eab308'
-                      : '#22c55e',
+                backgroundColor: getProgressColor(todayRequestPercentage),
               }}></div>
           </div>
           <div className="text-xs text-gray-400 mt-1">{todayRequestPercentage}%</div>
@@ -227,12 +298,7 @@ export default function GroqDashboard() {
               className="h-2 rounded-full transition-all"
               style={{
                 width: `${Math.min(todayTokenPercentage, 100)}%`,
-                backgroundColor:
-                  todayTokenPercentage >= 90
-                    ? '#ef4444'
-                    : todayTokenPercentage >= 70
-                      ? '#eab308'
-                      : '#22c55e',
+                backgroundColor: getProgressColor(todayTokenPercentage),
               }}></div>
           </div>
           <div className="text-xs text-gray-400 mt-1">{todayTokenPercentage}%</div>
@@ -257,12 +323,7 @@ export default function GroqDashboard() {
               className="h-2 rounded-full transition-all"
               style={{
                 width: `${Math.min(rpmPercentage, 100)}%`,
-                backgroundColor:
-                  rpmPercentage >= 90
-                    ? '#ef4444'
-                    : rpmPercentage >= 70
-                      ? '#eab308'
-                      : '#22c55e',
+                backgroundColor: getProgressColor(rpmPercentage),
               }}></div>
           </div>
           <div className="text-xs text-gray-400 mt-1">{rpmPercentage}%</div>
@@ -287,19 +348,14 @@ export default function GroqDashboard() {
               className="h-2 rounded-full transition-all"
               style={{
                 width: `${Math.min(tpmPercentage, 100)}%`,
-                backgroundColor:
-                  tpmPercentage >= 90
-                    ? '#ef4444'
-                    : tpmPercentage >= 70
-                      ? '#eab308'
-                      : '#22c55e',
+                backgroundColor: getProgressColor(tpmPercentage),
               }}></div>
           </div>
           <div className="text-xs text-gray-400 mt-1">{tpmPercentage}%</div>
         </div>
       </div>
 
-      {/* Models Usage */}
+      {/* Models Usage with Percentages */}
       {usage?.byModel && usage.byModel.length > 0 && (
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -310,51 +366,31 @@ export default function GroqDashboard() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    מודל
-                  </th>
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    בקשות
-                  </th>
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    טוקנים
-                  </th>
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    Prompt
-                  </th>
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    Completion
-                  </th>
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    זמן תגובה ממוצע
-                  </th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">מודל</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">בקשות</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">% מהמגבלה</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">טוקנים</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">% מהמגבלה</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">זמן ממוצע</th>
                 </tr>
               </thead>
               <tbody>
-                {usage.byModel.map((model, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium text-gray-800">
-                      {model.model || model._id}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {formatNumber(model.requests)}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {formatNumber(model.totalTokens)}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {formatNumber(model.promptTokens)}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {formatNumber(model.completionTokens)}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {model.avgResponseTime}ms
-                    </td>
-                  </tr>
-                ))}
+                {usage.byModel.map((model, idx) => {
+                  const requestPct = ((model.requests / MONTHLY_LIMITS.requests) * 100).toFixed(2);
+                  const tokenPct = ((model.totalTokens / MONTHLY_LIMITS.tokens) * 100).toFixed(2);
+                  return (
+                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium text-gray-800">
+                        {model.model || model._id}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">{formatNumber(model.requests)}</td>
+                      <td className="py-3 px-4 text-purple-600 font-medium">{requestPct}%</td>
+                      <td className="py-3 px-4 text-gray-600">{formatNumber(model.totalTokens)}</td>
+                      <td className="py-3 px-4 text-purple-600 font-medium">{tokenPct}%</td>
+                      <td className="py-3 px-4 text-gray-600">{model.avgResponseTime}ms</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -366,45 +402,37 @@ export default function GroqDashboard() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
             <span>🔗</span>
-            שימוש לפי Endpoint
+            שימוש לפי פיצ׳ר
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    Endpoint
-                  </th>
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    בקשות
-                  </th>
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    טוקנים
-                  </th>
-                  <th className="text-right py-3 px-4 text-gray-600 font-medium">
-                    זמן תגובה ממוצע
-                  </th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">פיצ׳ר</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">בקשות</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">% מהמגבלה</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">טוקנים</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">% מהמגבלה</th>
+                  <th className="text-right py-3 px-4 text-gray-600 font-medium">זמן ממוצע</th>
                 </tr>
               </thead>
               <tbody>
-                {usage.byEndpoint.map((endpoint, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium text-gray-800">
-                      {endpoint.endpoint || endpoint._id || 'לא ידוע'}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {formatNumber(endpoint.requests)}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {formatNumber(endpoint.totalTokens)}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {endpoint.avgResponseTime}ms
-                    </td>
-                  </tr>
-                ))}
+                {usage.byEndpoint.map((endpoint, idx) => {
+                  const requestPct = ((endpoint.requests / MONTHLY_LIMITS.requests) * 100).toFixed(2);
+                  const tokenPct = ((endpoint.totalTokens / MONTHLY_LIMITS.tokens) * 100).toFixed(2);
+                  return (
+                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium text-gray-800">
+                        {endpoint.endpoint || endpoint._id || 'לא ידוע'}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600">{formatNumber(endpoint.requests)}</td>
+                      <td className="py-3 px-4 text-purple-600 font-medium">{requestPct}%</td>
+                      <td className="py-3 px-4 text-gray-600">{formatNumber(endpoint.totalTokens)}</td>
+                      <td className="py-3 px-4 text-purple-600 font-medium">{tokenPct}%</td>
+                      <td className="py-3 px-4 text-gray-600">{endpoint.avgResponseTime}ms</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -434,63 +462,77 @@ export default function GroqDashboard() {
         </div>
       )}
 
-      {/* Info Cards */}
+      {/* Model Information Section */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <span>📚</span>
+          מידע על המודלים הזמינים (חינמי)
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Object.entries(MODEL_INFO).map(([modelId, info]) => (
+            <div key={modelId} className="border border-gray-200 rounded-xl p-4 hover:border-purple-300 transition">
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="font-bold text-gray-800">{info.name}</h3>
+                {info.free && (
+                  <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">חינמי</span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 mb-3">{info.description}</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-gray-50 rounded p-2">
+                  <span className="text-gray-500">חלון הקשר:</span>
+                  <span className="font-medium text-gray-700 mr-1">{info.contextWindow}</span>
+                </div>
+                <div className="bg-gray-50 rounded p-2">
+                  <span className="text-gray-500">מהירות:</span>
+                  <span className="font-medium text-gray-700 mr-1">{info.speed}</span>
+                </div>
+              </div>
+              <div className="mt-2 text-xs">
+                <span className="text-gray-500">מתאים ל:</span>
+                <span className="text-purple-600 mr-1">{info.bestFor}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Free Tier Limits Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg p-6 text-white">
           <h3 className="font-bold text-lg mb-2">📋 מגבלות Free Tier</h3>
           <ul className="space-y-2 text-purple-100">
-            <li>• 14,400 בקשות ליום</li>
-            <li>• 30 בקשות לדקה (RPM)</li>
-            <li>• 15,000 טוקנים לדקה (TPM)</li>
-            <li>• מודלים: Llama 3.3, Mixtral, ועוד</li>
+            <li>• <strong>יומי:</strong> 14,400 בקשות</li>
+            <li>• <strong>יומי:</strong> ~500,000 טוקנים</li>
+            <li>• <strong>לדקה:</strong> 30 בקשות (RPM)</li>
+            <li>• <strong>לדקה:</strong> 15,000 טוקנים (TPM)</li>
+            <li>• <strong>חודשי (משוער):</strong> ~432,000 בקשות</li>
+            <li>• <strong>חודשי (משוער):</strong> ~15,000,000 טוקנים</li>
           </ul>
         </div>
 
         <div className="bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl shadow-lg p-6 text-white">
           <h3 className="font-bold text-lg mb-2">💡 טיפים לחיסכון</h3>
           <ul className="space-y-2 text-green-100">
-            <li>• השתמש ב-caching לתשובות דומות</li>
+            <li>• השתמש ב-<strong>llama-3.1-8b-instant</strong> למשימות פשוטות</li>
             <li>• הגבל את max_tokens בבקשות</li>
             <li>• השתמש ב-system prompts קצרים</li>
-            <li>• בחר מודל מתאים למשימה</li>
+            <li>• <strong>llama-3.3-70b</strong> למשימות מורכבות בלבד</li>
           </ul>
         </div>
       </div>
 
-      {/* Available Months */}
-      {availableMonths.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span>📆</span>
-            חודשים זמינים
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {availableMonths.map((m, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setSelectedYear(m.year);
-                  setSelectedMonth(m.month);
-                }}
-                className={`px-3 py-2 rounded-lg transition ${
-                  selectedYear === m.year && selectedMonth === m.month
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}>
-                {new Date(m.year, m.month - 1).toLocaleString('he-IL', {month: 'short'})} {m.year}
-                <span className="text-xs mr-1">({formatNumber(m.requests)})</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Last Updated */}
       <div className="text-center text-gray-400 text-sm">
-        עדכון אחרון:{' '}
+        נטען ב:{' '}
         {usage?.lastUpdated
           ? new Date(usage.lastUpdated).toLocaleString('he-IL')
           : 'לא זמין'}
+        <button
+          onClick={fetchUsage}
+          className="mr-4 text-purple-600 hover:text-purple-800 underline">
+          רענן נתונים
+        </button>
       </div>
     </div>
   );

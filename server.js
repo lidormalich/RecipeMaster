@@ -64,6 +64,10 @@ app.use('/api/cart', require('./routes/cart'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/groq', require('./routes/groq'));
 
+app.get('/api/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 const reactBuildPath = path.join(__dirname, 'client/build');
 const Recipe = require('./models/Recipe');
 
@@ -109,7 +113,7 @@ app.get('/recipe/:shortId', async (req, res) => {
         'מתכון טעים ב-RecipeMaster';
       const image =
         recipe.mainImage ||
-        'https://res.cloudinary.com/recipemaster/image/upload/v1/recipemaster/default-recipe.jpg';
+        'https://res.cloudinary.com/ddk6cfhl0/image/upload/v1769548932/recipemaster/default-recipe.png';
       // Use the actual shortId from database to maintain consistent URLs
       const url = `${process.env.BASE_URL || 'https://recipemaster.onrender.com'}/recipe/${recipe.shortId}`;
 

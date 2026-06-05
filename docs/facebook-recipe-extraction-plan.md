@@ -122,8 +122,18 @@ router.post('/import-facebook', auth, facebookImportController.importFromFaceboo
 8. prepTime במספר דקות (מספר שלם) אם צוין, אחרת null. servings מספר אם צוין, אחרת null.
 9. title קצר ותמציתי. description = משפט תקציר אחד (לא העתקה של כל הפוסט).
 
-מבנה הפלט המדויק:
+החזר JSON במבנה המדויק הבא (אלה השדות שהמערכת שומרת — אל תשנה שמות מפתחות):
 {"title":"","description":"","ingredients":"","instructions":"","prepTime":null,"servings":null,"difficulty":null,"dishType":null}
+
+מקרא השדות (מה כל שדה מכיל):
+- title (string): שם המתכון, קצר ותמציתי.
+- description (string): משפט תקציר אחד של המתכון (לא העתקת כל הפוסט).
+- ingredients (string): רשימת רכיבים, רכיב בכל שורה (\n), כולל כמות אם צוינה.
+- instructions (string): שלבי ההכנה בלבד, מנוקים מרעש.
+- prepTime (number|null): זמן הכנה בדקות (מספר שלם), null אם לא צוין.
+- servings (number|null): מספר מנות, null אם לא צוין.
+- difficulty (string|null): "קל" | "בינוני" | "מתקדם", null אם לא משתמע.
+- dishType (string|null): "ראשונה" | "עיקרית" | "קינוח" | "חטיף" | "סלט" | "מרק" | "לחם" | "תוספת", null אם לא משתמע.
 
 --- דוגמה ---
 טקסט קלט:
@@ -152,7 +162,7 @@ router.post('/import-facebook', auth, facebookImportController.importFromFaceboo
 """
 ```
 
-> אופציה לשדרוג: אם Groq תומך ב-`response_format: { type: "json_object" }` עבור llama-3.3 — להוסיף ל-`options` ולחסוך את ה-regex. לבדוק תאימות; אם לא — נשארים בתבנית ה-regex הקיימת שכבר עובדת בפרויקט.
+> **החלטה:** חילוץ ה-JSON ייעשה ב-**regex** (`/\{[\s\S]*\}/`) כמו ב-`generateTagsAI` הקיים — עקבי עם הקוד ואפס סיכון. הדגש הוא על **פרומט מפורש**: מקרא שדות שמסביר מה כל שדה מכיל (ראה §5), כדי שה-AI יחזיר JSON שמתמפה ישירות לסכמה שלנו ונשמר נכון. (אפשר לשקול בעתיד `response_format: json_object` של Groq כשדרוג, אך לא נדרש ל-MVP.)
 
 ---
 
@@ -170,7 +180,7 @@ router.post('/import-facebook', auth, facebookImportController.importFromFaceboo
 | dishType | dishType | enum קיים |
 | ogImage | mainImage | ראה §8 — לא במסגרת ה-MVP |
 | — | tags | דרך `generateTagsAI` הקיים |
-| url | (חדש?) sourceUrl | ראה §9 |
+| url | sourceUrl | **נכלל ב-MVP** — שדה חדש במודל (§9) |
 
 ---
 
@@ -204,9 +214,11 @@ router.post('/import-facebook', auth, facebookImportController.importFromFaceboo
 
 ---
 
-## 9. שדה מקור (אופציונלי, מומלץ)
+## 9. שדה מקור — `sourceUrl` (נכלל ב-MVP)
 
-הוספת שדה `sourceUrl: String` ל-`models/Recipe.js` כדי לשמור קרדיט/מקור הייבוא. לא חובה ל-MVP אך זול וערכי (שקיפות + מניעת ייבוא כפול בעתיד).
+**החלטה:** מוסיפים שדה `sourceUrl: String` ל-`models/Recipe.js` עכשיו, כדי לשמור את קישור המקור (קרדיט/שקיפות + מניעת ייבוא כפול בעתיד).
+- ה-controller יעביר את ה-`url` ל-recipe המוחזר, וייכלל ב-`POST /api/recipes` בעת השמירה.
+- אופציונלי: הצגת "מקור: פייסבוק" עם קישור בדף המתכון (`RecipeDetail`) — נחמד אך לא חוסם.
 
 ---
 
@@ -221,11 +233,16 @@ router.post('/import-facebook', auth, facebookImportController.importFromFaceboo
 
 ## 11. בדיקות
 
-- אין כיום תשתית בדיקות בצד שרת. מומלץ להוסיף **Jest + Supertest** (קל) עבור:
-  - `extractRecipeFromText` עם 3-4 דוגמאות טקסט אמיתיות (כולל מקרה קצה: טקסט ללא מתכון → שדות ריקים, לא הזיה).
-  - ולידציית ה-allow-list של ה-URL (דחיית דומיין זר / IP פנימי).
-  - `fetchFacebookMeta` עם mock של תגובת HTML (403, 200 עם/בלי og tags).
-- בדיקה ידנית מקצה-לקצה עם הקישור לדוגמה (יפול ל-403 → מסלול הדבקה ידנית).
+**החלטה ל-MVP: בדיקה ידנית בלבד** (תואם למצב הפרויקט — אין תשתית בדיקות כיום). לא מוסיפים Jest/Supertest בשלב זה.
+
+תרחישי בדיקה ידנית מקצה-לקצה:
+1. הקישור לדוגמה (`/share/r/...`) → נופל ל-403 → "נסה שוב" → בכישלון שני מסלול הדבקה ידנית → הדבקת טקסט מתכון → טופס מתמלא נכון.
+2. הדבקת טקסט "מלוכלך" (אמוג'ים/האשטגים/"תייגו חבר") → ווידוא ניקוי וחילוץ נכון של כל השדות.
+3. מקרה קצה: טקסט ללא מתכון → שדות ריקים/null, **ללא הזיה**.
+4. ווידוא שתגיות נוצרות דרך השרשור ל-`generateTagsAI` עם IDs נכונים.
+5. ווידוא דחיית URL לא-פייסבוק (allow-list) — שגיאה ולא ניסיון fetch.
+
+> אפשר להוסיף Jest+Supertest בשלב מאוחר יותר אם הפיצ'ר יתבסס.
 
 ---
 
@@ -240,21 +257,23 @@ router.post('/import-facebook', auth, facebookImportController.importFromFaceboo
 **שינויים:**
 - `routes/recipes.js` — ראוט `POST /api/recipes/import-facebook`.
 - `client/src/pages/CreateRecipe.js` — כפתור + שילוב המודאל + pre-fill.
-- `package.json` — הוספת `cheerio` (+ jest/supertest אם בוחרים בדיקות).
-- (אופציונלי) `models/Recipe.js` — שדה `sourceUrl`.
+- `package.json` — הוספת `cheerio`.
+- `models/Recipe.js` — שדה `sourceUrl` (נכלל ב-MVP).
 
 ---
 
 ## 13. הצעת פיצול לשלבים
 
-- **שלב 1 (MVP):** ראוט + פרומט + חילוץ AI + מודאל עם retry/הדבקה ידנית + pre-fill לטופס + תיוג אוטומטי קיים. ← לב הפיצ'ר.
-- **שלב 2:** משיכת `og:image` והעלאה ל-Cloudinary + שדה `sourceUrl`.
+- **שלב 1 (MVP):** ראוט + פרומט + חילוץ AI + מודאל עם retry/הדבקה ידנית + pre-fill לטופס + תיוג אוטומטי קיים + שדה `sourceUrl`. ← לב הפיצ'ר.
+- **שלב 2:** משיכת `og:image` והעלאה ל-Cloudinary.
 - **שלב 3:** הרחבת מקורות (אינסטגרם/אתרי מתכונים עם JSON-LD) באמצעות אותה פונקציית חילוץ AI.
 
 ---
 
-## 14. שאלות פתוחות לפני מימוש
+## 14. החלטות שנסגרו
 
-1. להוסיף תשתית בדיקות (Jest/Supertest) או להסתפק בבדיקה ידנית ל-MVP?
-2. להוסיף `sourceUrl` למודל כבר עכשיו?
-3. response_format JSON של Groq — לבדוק תאימות ל-llama-3.3 או להישאר עם regex?
+1. **בדיקות:** בדיקה ידנית בלבד ל-MVP (ללא Jest/Supertest). ראה §11.
+2. **sourceUrl:** מתווסף עכשיו, נכלל ב-MVP. ראה §9.
+3. **חילוץ JSON:** regex כמו בקוד הקיים + פרומט מפורש עם מקרא שדות. ראה §5.
+
+✅ כל השאלות הפתוחות נסגרו — התכנון מוכן למימוש שלב 1.

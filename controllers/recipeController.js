@@ -4,6 +4,7 @@ const Cart = require('../models/Cart');
 const Tag = require('../models/Tag');
 const cloudinary = require('cloudinary').v2;
 const {groqWithTracking} = require('./groqController');
+const {logActivity} = require('../utils/logActivity');
 
 // Helper function to populate tags from globalIds
 const populateTagsFromGlobalIds = async recipe => {
@@ -74,6 +75,16 @@ exports.getRecipes = async (req, res) => {
       recipes.map(recipe => populateTagsFromGlobalIds(recipe)),
     );
 
+    // Track non-empty searches for analytics
+    if (search && search.trim()) {
+      logActivity({
+        req,
+        user: req.user,
+        action: 'search',
+        metadata: {query: search.trim(), results: recipesWithTags.length},
+      });
+    }
+
     res.json(recipesWithTags);
   } catch (err) {
     console.error(err.message);
@@ -117,6 +128,16 @@ exports.addToCart = async (req, res) => {
     });
 
     await cart.save();
+
+    logActivity({
+      req,
+      user: req.user,
+      action: 'cart_add',
+      targetType: 'recipe',
+      targetId: recipe.shortId,
+      metadata: {recipeTitle: recipe.title},
+    });
+
     res.json(cart.items);
   } catch (err) {
     console.error(err.message);
@@ -180,6 +201,15 @@ exports.getRecipe = async (req, res) => {
     // Populate tags from globalIds
     const recipeWithTags = await populateTagsFromGlobalIds(recipe);
 
+    logActivity({
+      req,
+      user: req.user,
+      action: 'recipe_view',
+      targetType: 'recipe',
+      targetId: recipe.shortId,
+      metadata: {recipeTitle: recipe.title},
+    });
+
     res.json(recipeWithTags);
   } catch (err) {
     console.error(err.message);
@@ -241,6 +271,15 @@ exports.createRecipe = async (req, res) => {
     await recipe.populate('author', 'name');
     await recipe.populate('tags', 'name');
 
+    logActivity({
+      req,
+      user: req.user,
+      action: 'recipe_create',
+      targetType: 'recipe',
+      targetId: recipe.shortId,
+      metadata: {recipeTitle: recipe.title},
+    });
+
     res.json(recipe);
   } catch (err) {
     console.error(err.message);
@@ -281,6 +320,15 @@ exports.updateRecipe = async (req, res) => {
       .populate('author', 'name')
       .populate('tags', 'name');
 
+    logActivity({
+      req,
+      user: req.user,
+      action: 'recipe_update',
+      targetType: 'recipe',
+      targetId: recipe.shortId,
+      metadata: {recipeTitle: recipe.title},
+    });
+
     res.json(recipe);
   } catch (err) {
     console.error(err.message);
@@ -308,6 +356,15 @@ exports.deleteRecipe = async (req, res) => {
     recipe.deletedBy = req.user.id;
     recipe.deletedAt = new Date();
     await recipe.save();
+
+    logActivity({
+      req,
+      user: req.user,
+      action: 'recipe_delete',
+      targetType: 'recipe',
+      targetId: recipe.shortId,
+      metadata: {recipeTitle: recipe.title},
+    });
 
     res.json({message: 'Recipe deleted'});
   } catch (err) {
@@ -592,6 +649,13 @@ exports.aiRecommend = async (req, res) => {
     if (!query && mode !== 'surprise') {
       return res.status(400).json({message: 'Query is required'});
     }
+
+    logActivity({
+      req,
+      user: req.user,
+      action: 'ai_use',
+      metadata: {mode, query: query || null},
+    });
 
     const cache = await getRecipesSummary();
 

@@ -34,6 +34,26 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // --- Activity tracking ---
+    lastLogin: {
+      type: Date,
+    },
+    loginCount: {
+      type: Number,
+      default: 0,
+    },
+    lastActiveAt: {
+      type: Date,
+    },
+    registrationIp: {
+      type: String,
+    },
+    // Gamification — earned achievement badges (see analyticsController)
+    badges: [
+      {
+        type: String,
+      },
+    ],
     favorites: [
       {
         type: mongoose.Schema.Types.ObjectId,

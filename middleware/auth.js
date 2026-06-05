@@ -27,6 +27,14 @@ const auth = async (req, res, next) => {
       name: user.name,
       email: user.email,
     };
+
+    // Throttled "last seen" update for presence/active-user analytics.
+    // Fire-and-forget, at most once every 5 minutes per user.
+    const FIVE_MIN = 5 * 60 * 1000;
+    if (!user.lastActiveAt || Date.now() - user.lastActiveAt.getTime() > FIVE_MIN) {
+      User.updateOne({_id: user._id}, {lastActiveAt: new Date()}).catch(() => {});
+    }
+
     next();
   } catch (err) {
     res.status(401).json({message: 'Token is not valid'});

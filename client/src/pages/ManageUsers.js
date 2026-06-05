@@ -309,6 +309,12 @@ const ManageUsers = () => {
                 הצטרפות
               </th>
               <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
+                התחברות אחרונה
+              </th>
+              <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
+                מתכונים
+              </th>
+              <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
                 פעולות
               </th>
             </tr>
@@ -351,6 +357,18 @@ const ManageUsers = () => {
                 </td>
                 <td className="px-4 py-4 text-gray-600 text-sm">
                   {new Date(u.createdAt).toLocaleDateString('he-IL')}
+                </td>
+                <td className="px-4 py-4 text-gray-600 text-sm">
+                  {u.lastLogin ? (
+                    <span title={`${u.loginCount || 0} התחברויות`}>
+                      {new Date(u.lastLogin).toLocaleDateString('he-IL')}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-4 text-gray-600 text-sm text-center">
+                  {u.recipeCount || 0}
                 </td>
                 <td className="px-4 py-4">
                   {u._id !== user._id ? (

@@ -172,11 +172,19 @@ const Header = () => {
                             </Link>
 
                             <Link
-                              to="/admin/groq-dashboard"
+                              to="/admin/analytics"
                               onClick={() => setIsAdminOpen(false)}
                               className="flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-slate-700 transition-colors border-t border-slate-700">
                               <span>📊</span>
-                              <span>ניטור API (Groq)</span>
+                              <span>דשבורד אנליטיקה</span>
+                            </Link>
+
+                            <Link
+                              to="/admin/groq-dashboard"
+                              onClick={() => setIsAdminOpen(false)}
+                              className="flex items-center space-x-3 space-x-reverse px-4 py-3 hover:bg-slate-700 transition-colors">
+                              <span>🤖</span>
+                              <span>ניטור AI (Groq)</span>
                             </Link>
                           </>
                         )}
@@ -382,11 +390,19 @@ const Header = () => {
                           </Link>
 
                           <Link
-                            to="/admin/groq-dashboard"
+                            to="/admin/analytics"
                             onClick={() => setIsMenuOpen(false)}
                             className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
                             <span>📊</span>
-                            <span>ניטור API (Groq)</span>
+                            <span>דשבורד אנליטיקה</span>
+                          </Link>
+
+                          <Link
+                            to="/admin/groq-dashboard"
+                            onClick={() => setIsMenuOpen(false)}
+                            className="flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors">
+                            <span>🤖</span>
+                            <span>ניטור AI (Groq)</span>
                           </Link>
                         </>
                       )}

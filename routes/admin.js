@@ -39,4 +39,11 @@ router.delete(
   adminController.deleteUser,
 );
 
+router.get(
+  '/audit-log',
+  auth,
+  checkRole(['Admin']),
+  adminController.getAuditLog,
+);
+
 module.exports = router;

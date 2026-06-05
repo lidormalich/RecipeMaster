@@ -60,6 +60,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/recipes', require('./routes/recipes'));
 app.use('/api/tags', require('./routes/tags'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/cart', require('./routes/cart'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/groq', require('./routes/groq'));

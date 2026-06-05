@@ -7,11 +7,22 @@ const Profile = () => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     fetchUser();
     fetchCart();
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get('/api/auth/my-stats');
+      setStats(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchUser = async () => {
     try {
@@ -104,6 +115,48 @@ const Profile = () => {
               </span>
             </div>
           </div>
+
+          {/* Stats counters */}
+          {stats && (
+            <div className="mt-6 grid grid-cols-3 gap-4">
+              <div className="bg-indigo-50 rounded-xl p-4 text-center">
+                <div className="text-2xl font-extrabold text-indigo-600">
+                  {stats.recipes}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">מתכונים</div>
+              </div>
+              <div className="bg-pink-50 rounded-xl p-4 text-center">
+                <div className="text-2xl font-extrabold text-pink-600">
+                  {stats.hearts}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">לבבות שנצברו</div>
+              </div>
+              <div className="bg-emerald-50 rounded-xl p-4 text-center">
+                <div className="text-2xl font-extrabold text-emerald-600">
+                  {stats.loginCount}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">התחברויות</div>
+              </div>
+            </div>
+          )}
+
+          {/* Achievement badges */}
+          {stats?.badges?.length > 0 && (
+            <div className="mt-6 border-t border-gray-200 pt-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span>🎖️</span> תגי הישג
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {stats.badges.map((b, i) => (
+                  <span
+                    key={i}
+                    className="px-3 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 border border-amber-200">
+                    {b}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

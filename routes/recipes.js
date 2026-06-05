@@ -23,6 +23,9 @@ router.get('/deleted/all', auth, recipeController.getDeletedRecipes);
 router.patch('/:shortId/restore', auth, recipeController.restoreRecipe);
 router.delete('/:shortId/permanent', auth, recipeController.permanentDeleteRecipe);
 
+// Record a share (best-effort, works for guests too)
+router.post('/:shortId/share', optionalAuth, recipeController.logShare);
+
 // ShortId routes
 router.get('/:shortId', optionalAuth, recipeController.getRecipe);
 router.post('/', auth, upload.array('images'), recipeController.createRecipe);

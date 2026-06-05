@@ -4,6 +4,7 @@ import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {AuthProvider} from './context/AuthContext';
 import Header from './components/Header';
+import AnnouncementBanner from './components/AnnouncementBanner';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -27,6 +28,7 @@ function App() {
       <Router>
         <div className="min-h-screen bg-gray-100" dir="rtl">
           <Header />
+          <AnnouncementBanner />
           <main className="container mx-auto px-4 py-8">
             <Routes>
               <Route path="/" element={<Home />} />

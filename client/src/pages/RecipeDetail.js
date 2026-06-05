@@ -3,6 +3,7 @@ import {useParams, useNavigate} from 'react-router-dom';
 import axios from 'axios';
 import {toast} from 'react-toastify';
 import ShareModal from '../components/ShareModal';
+import ReportModal from '../components/ReportModal';
 
 const RecipeDetail = () => {
   const {shortId} = useParams();
@@ -13,6 +14,7 @@ const RecipeDetail = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -319,6 +321,16 @@ const RecipeDetail = () => {
               />
             </svg>
           </button>
+
+          {/* כפתור דיווח - למשתמשים מחוברים שאינם בעלי המתכון */}
+          {currentUser && !isOwner && (
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="w-11 h-11 bg-white hover:bg-red-50 rounded-full shadow-md hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center group border border-gray-200"
+              title="דווח על מתכון">
+              <span className="text-lg group-hover:scale-110 transition-transform">🚩</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -461,6 +473,13 @@ const RecipeDetail = () => {
       <ShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
+        recipe={recipe}
+      />
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
         recipe={recipe}
       />
     </div>

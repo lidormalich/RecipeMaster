@@ -6,8 +6,6 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,
@@ -215,6 +213,9 @@ export default function AdminAnalytics() {
   const [data, setData] = useState(null);
   const [live, setLive] = useState(null);
   const [audit, setAudit] = useState(null);
+  const [reports, setReports] = useState(null);
+  const [announcements, setAnnouncements] = useState([]);
+  const [annForm, setAnnForm] = useState({message: '', type: 'info', expiresAt: ''});
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -253,6 +254,70 @@ export default function AdminAnalytics() {
     }
   }, []);
 
+  const fetchReports = useCallback(async () => {
+    try {
+      const res = await axios.get('/api/reports?status=open&limit=20');
+      setReports(res.data);
+    } catch (err) {
+      /* best-effort */
+    }
+  }, []);
+
+  const fetchAnnouncements = useCallback(async () => {
+    try {
+      const res = await axios.get('/api/announcements');
+      setAnnouncements(res.data);
+    } catch (err) {
+      /* best-effort */
+    }
+  }, []);
+
+  const resolveReport = async (id, status) => {
+    try {
+      await axios.patch(`/api/reports/${id}`, {status});
+      fetchReports();
+    } catch (err) {
+      toast.error('שגיאה בעדכון הדיווח');
+    }
+  };
+
+  const createAnnouncement = async () => {
+    if (!annForm.message.trim()) {
+      toast.error('יש להזין תוכן הודעה');
+      return;
+    }
+    try {
+      await axios.post('/api/announcements', {
+        message: annForm.message,
+        type: annForm.type,
+        expiresAt: annForm.expiresAt || null,
+      });
+      setAnnForm({message: '', type: 'info', expiresAt: ''});
+      toast.success('ההודעה פורסמה');
+      fetchAnnouncements();
+    } catch (err) {
+      toast.error('שגיאה בפרסום ההודעה');
+    }
+  };
+
+  const toggleAnnouncement = async (id, active) => {
+    try {
+      await axios.patch(`/api/announcements/${id}`, {active});
+      fetchAnnouncements();
+    } catch (err) {
+      toast.error('שגיאה בעדכון ההודעה');
+    }
+  };
+
+  const deleteAnnouncement = async id => {
+    try {
+      await axios.delete(`/api/announcements/${id}`);
+      fetchAnnouncements();
+    } catch (err) {
+      toast.error('שגיאה במחיקת ההודעה');
+    }
+  };
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -266,7 +331,19 @@ export default function AdminAnalytics() {
     fetchOverview(days);
     fetchLive();
     fetchAudit();
-  }, [user, authLoading, navigate, days, fetchOverview, fetchLive, fetchAudit]);
+    fetchReports();
+    fetchAnnouncements();
+  }, [
+    user,
+    authLoading,
+    navigate,
+    days,
+    fetchOverview,
+    fetchLive,
+    fetchAudit,
+    fetchReports,
+    fetchAnnouncements,
+  ]);
 
   // Poll live data every 30s
   useEffect(() => {
@@ -293,6 +370,26 @@ export default function AdminAnalytics() {
       toast.error('שגיאה בעדכון תגי הישג');
     }
   };
+
+  const exportUsersCsv = async () => {
+    try {
+      const res = await axios.get('/api/admin/export/users.csv', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `users-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error('שגיאה בייצוא CSV');
+    }
+  };
+
+  const printReport = () => window.print();
 
   if (authLoading || loading) {
     return <div className="text-center py-16 text-gray-500">טוען נתונים...</div>;
@@ -342,6 +439,24 @@ export default function AdminAnalytics() {
     <div className="max-w-7xl mx-auto space-y-6">
       <Confetti fire={confetti} />
 
+      <style jsx global>{`
+        @media print {
+          header,
+          .no-print,
+          .Toastify {
+            display: none !important;
+          }
+          body {
+            background: white !important;
+          }
+          .shadow-md,
+          .shadow-lg,
+          .shadow-sm {
+            box-shadow: none !important;
+          }
+        }
+      `}</style>
+
       {/* Header + range selector */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -352,19 +467,33 @@ export default function AdminAnalytics() {
             עודכן: {new Date(data.lastUpdated).toLocaleString('he-IL')}
           </p>
         </div>
-        <div className="flex gap-2 bg-white rounded-lg shadow-sm p-1">
-          {RANGE_OPTIONS.map(o => (
-            <button
-              key={o.value}
-              onClick={() => setDays(o.value)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                days === o.value
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}>
-              {o.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 no-print">
+          <div className="flex gap-2 bg-white rounded-lg shadow-sm p-1">
+            {RANGE_OPTIONS.map(o => (
+              <button
+                key={o.value}
+                onClick={() => setDays(o.value)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  days === o.value
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}>
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={exportUsersCsv}
+            title="ייצוא משתמשים ל-CSV"
+            className="px-3 py-2 bg-white rounded-lg shadow-sm text-sm font-medium text-gray-600 hover:bg-gray-100">
+            📥 CSV
+          </button>
+          <button
+            onClick={printReport}
+            title="הדפסה / שמירה כ-PDF"
+            className="px-3 py-2 bg-white rounded-lg shadow-sm text-sm font-medium text-gray-600 hover:bg-gray-100">
+            🖨️ PDF
+          </button>
         </div>
       </div>
 
@@ -578,6 +707,131 @@ export default function AdminAnalytics() {
           </ul>
         </Section>
       </div>
+
+      {/* Content reports */}
+      <Section
+        title="דיווחים פתוחים"
+        icon="🚩"
+        action={
+          reports?.openCount > 0 && (
+            <span className="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded-full font-bold">
+              {reports.openCount} ממתינים
+            </span>
+          )
+        }>
+        {(!reports || reports.entries.length === 0) ? (
+          <p className="text-gray-400 text-sm">אין דיווחים פתוחים — הכל נקי! ✨</p>
+        ) : (
+          <div className="space-y-3">
+            {reports.entries.map(r => (
+              <div
+                key={r._id}
+                className="flex items-start justify-between gap-3 border border-gray-100 rounded-lg p-3">
+                <div className="text-sm">
+                  <a
+                    href={`/recipe/${r.targetId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-indigo-600 hover:underline">
+                    {r.recipeTitle || r.targetId}
+                  </a>
+                  <p className="text-gray-600 mt-0.5">{r.reason}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    דווח ע״י {r.reporterName || 'משתמש'} · {timeAgo(r.createdAt)}
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => resolveReport(r._id, 'resolved')}
+                    className="px-2.5 py-1 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200">
+                    ✓ טופל
+                  </button>
+                  <button
+                    onClick={() => resolveReport(r._id, 'dismissed')}
+                    className="px-2.5 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200">
+                    התעלם
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
+
+      {/* Broadcast / announcements */}
+      <Section title="הודעת מערכת (Broadcast)" icon="📣">
+        <div className="flex flex-col md:flex-row gap-3 mb-4 no-print">
+          <input
+            type="text"
+            value={annForm.message}
+            onChange={e => setAnnForm({...annForm, message: e.target.value})}
+            placeholder="תוכן ההודעה שתוצג לכל המשתמשים..."
+            maxLength={300}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <select
+            value={annForm.type}
+            onChange={e => setAnnForm({...annForm, type: e.target.value})}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="info">ℹ️ מידע</option>
+            <option value="warning">⚠️ אזהרה</option>
+            <option value="success">🎉 חגיגי</option>
+          </select>
+          <input
+            type="date"
+            value={annForm.expiresAt}
+            onChange={e => setAnnForm({...annForm, expiresAt: e.target.value})}
+            title="תאריך תפוגה (אופציונלי)"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <button
+            onClick={createAnnouncement}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium whitespace-nowrap">
+            פרסם
+          </button>
+        </div>
+        {announcements.length === 0 ? (
+          <p className="text-gray-400 text-sm">לא פורסמו הודעות עדיין</p>
+        ) : (
+          <div className="space-y-2">
+            {announcements.map(a => (
+              <div
+                key={a._id}
+                className="flex items-center justify-between gap-3 border border-gray-100 rounded-lg p-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span>
+                    {a.type === 'warning' ? '⚠️' : a.type === 'success' ? '🎉' : 'ℹ️'}
+                  </span>
+                  <span className={a.active ? 'text-gray-800' : 'text-gray-400 line-through'}>
+                    {a.message}
+                  </span>
+                  {a.expiresAt && (
+                    <span className="text-xs text-gray-400">
+                      (עד {new Date(a.expiresAt).toLocaleDateString('he-IL')})
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => toggleAnnouncement(a._id, !a.active)}
+                    className={`px-2.5 py-1 text-xs rounded-lg ${
+                      a.active
+                        ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                    }`}>
+                    {a.active ? 'השבת' : 'הפעל'}
+                  </button>
+                  <button
+                    onClick={() => deleteAnnouncement(a._id)}
+                    className="px-2.5 py-1 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
+                    מחק
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
 
       {/* Audit log */}
       <Section title="יומן פעולות מנהלים" icon="🛡️">

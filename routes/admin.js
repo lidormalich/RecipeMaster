@@ -46,4 +46,11 @@ router.get(
   adminController.getAuditLog,
 );
 
+router.get(
+  '/export/users.csv',
+  auth,
+  checkRole(['Admin']),
+  adminController.exportUsersCsv,
+);
+
 module.exports = router;

@@ -22,6 +22,8 @@ router.post('/login', authController.login);
 
 router.get('/me', auth, authController.getMe);
 
+router.get('/my-stats', auth, authController.getMyStats);
+
 // Favorites routes
 router.get('/favorites', auth, authController.getFavorites);
 router.post('/favorites/:recipeId', auth, authController.addFavorite);

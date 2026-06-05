@@ -140,6 +140,65 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
+// Escape a value for safe inclusion in a CSV cell
+function csvCell(value) {
+  if (value == null) return '';
+  const str = String(value);
+  if (/[",\n]/.test(str)) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+// GET /api/admin/export/users.csv — download all users as CSV
+exports.exportUsersCsv = async (req, res) => {
+  try {
+    const users = await User.find().select('-password').sort({createdAt: -1}).lean();
+
+    const recipeCounts = await Recipe.aggregate([
+      {$match: {isDeleted: false}},
+      {$group: {_id: '$author', count: {$sum: 1}}},
+    ]);
+    const countMap = new Map(recipeCounts.map(r => [String(r._id), r.count]));
+
+    const headers = [
+      'שם',
+      'אימייל',
+      'תפקיד',
+      'מושעה',
+      'מתכונים',
+      'התחברויות',
+      'התחברות אחרונה',
+      'תאריך הצטרפות',
+    ];
+
+    const rows = users.map(u =>
+      [
+        u.name,
+        u.email,
+        u.role,
+        u.suspended ? 'כן' : 'לא',
+        countMap.get(String(u._id)) || 0,
+        u.loginCount || 0,
+        u.lastLogin ? new Date(u.lastLogin).toISOString() : '',
+        u.createdAt ? new Date(u.createdAt).toISOString() : '',
+      ]
+        .map(csvCell)
+        .join(','),
+    );
+
+    // Prepend UTF-8 BOM so Excel renders Hebrew correctly
+    const csv = '﻿' + [headers.join(','), ...rows].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="users.csv"');
+    res.send(csv);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
 // GET /api/admin/audit-log — paginated trail of sensitive admin actions
 exports.getAuditLog = async (req, res) => {
   try {

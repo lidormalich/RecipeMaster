@@ -1,8 +1,11 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const {validationResult} = require('express-validator');
 const User = require('../models/User');
+const Recipe = require('../models/Recipe');
 const {logActivity, extractIp} = require('../utils/logActivity');
+const {computeBadges} = require('./analyticsController');
 
 exports.register = async (req, res) => {
   const errors = validationResult(req);
@@ -110,6 +113,59 @@ exports.getMe = async (req, res) => {
     res.json(user);
   } catch (err) {
     console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+// Live stats + badges for the currently logged-in user (also persists badges)
+exports.getMyStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const authorId = new mongoose.Types.ObjectId(String(userId));
+
+    const [recipes, hearts, user] = await Promise.all([
+      Recipe.countDocuments({author: userId, isDeleted: false}),
+      // Count how many users have favorited any of this user's recipes
+      User.aggregate([
+        {$unwind: '$favorites'},
+        {
+          $lookup: {
+            from: 'recipes',
+            localField: 'favorites',
+            foreignField: '_id',
+            as: 'recipe',
+          },
+        },
+        {$unwind: '$recipe'},
+        {$match: {'recipe.author': authorId}},
+        {$count: 'count'},
+      ]),
+      User.findById(userId).select('loginCount createdAt badges'),
+    ]);
+
+    const heartCount = hearts[0]?.count || 0;
+    const stats = {
+      recipes,
+      hearts: heartCount,
+      loginCount: user?.loginCount || 0,
+    };
+    const badges = computeBadges(stats);
+
+    // Persist badges if they changed
+    if (user && JSON.stringify(badges) !== JSON.stringify(user.badges || [])) {
+      user.badges = badges;
+      await user.save();
+    }
+
+    res.json({
+      recipes,
+      hearts: heartCount,
+      loginCount: stats.loginCount,
+      memberSince: user?.createdAt,
+      badges,
+    });
+  } catch (err) {
+    console.error('Error building user stats:', err.message);
     res.status(500).send('Server error');
   }
 };

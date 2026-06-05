@@ -217,6 +217,25 @@ exports.getRecipe = async (req, res) => {
   }
 };
 
+// Lightweight endpoint to record a share action (fire-and-forget client call)
+exports.logShare = async (req, res) => {
+  try {
+    const {shortId} = req.params;
+    const {platform} = req.body || {};
+    logActivity({
+      req,
+      user: req.user,
+      action: 'share',
+      targetType: 'recipe',
+      targetId: shortId,
+      metadata: {platform: platform || 'unknown'},
+    });
+    res.json({ok: true});
+  } catch (err) {
+    res.json({ok: false});
+  }
+};
+
 exports.createRecipe = async (req, res) => {
   const {
     title,

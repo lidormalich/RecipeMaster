@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {validationResult} = require('express-validator');
 const User = require('../models/User');
+const {logActivity, extractIp} = require('../utils/logActivity');
 
 exports.register = async (req, res) => {
   const errors = validationResult(req);
@@ -21,12 +22,15 @@ exports.register = async (req, res) => {
       name,
       email,
       password,
+      registrationIp: extractIp(req),
     });
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
 
     await user.save();
+
+    logActivity({req, user, action: 'register'});
 
     const payload = {
       user: {
@@ -55,11 +59,13 @@ exports.login = async (req, res) => {
   try {
     let user = await User.findOne({email});
     if (!user) {
+      logActivity({req, action: 'login_failed', metadata: {email, reason: 'no_user'}});
       return res.status(400).json({message: 'Invalid credentials'});
     }
 
     // Check if user is suspended
     if (user.suspended) {
+      logActivity({req, user, action: 'login_failed', metadata: {reason: 'suspended'}});
       return res
         .status(403)
         .json({message: 'החשבון שלך מושעה. אנא פנה למנהל המערכת.'});
@@ -67,8 +73,15 @@ exports.login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      logActivity({req, user, action: 'login_failed', metadata: {reason: 'bad_password'}});
       return res.status(400).json({message: 'Invalid credentials'});
     }
+
+    // Record successful login
+    user.lastLogin = new Date();
+    user.loginCount = (user.loginCount || 0) + 1;
+    await user.save();
+    logActivity({req, user, action: 'login', metadata: {method: 'password'}});
 
     const payload = {
       user: {
@@ -101,7 +114,18 @@ exports.getMe = async (req, res) => {
   }
 };
 
-exports.googleAuthCallback = (req, res) => {
+exports.googleAuthCallback = async (req, res) => {
+  // Record successful Google login
+  try {
+    await User.findByIdAndUpdate(req.user.id, {
+      lastLogin: new Date(),
+      $inc: {loginCount: 1},
+    });
+    logActivity({req, user: req.user, action: 'login', metadata: {method: 'google'}});
+  } catch (err) {
+    console.error('Error recording google login:', err.message);
+  }
+
   const payload = {
     user: {
       id: req.user.id,
@@ -144,6 +168,8 @@ exports.addFavorite = async (req, res) => {
     user.favorites.push(recipeId);
     await user.save();
 
+    logActivity({req, user, action: 'favorite_add', targetType: 'recipe', targetId: recipeId});
+
     res.json({message: 'המתכון נוסף למועדפים', favorites: user.favorites});
   } catch (err) {
     console.error(err.message);
@@ -161,6 +187,8 @@ exports.removeFavorite = async (req, res) => {
       fav => fav.toString() !== recipeId
     );
     await user.save();
+
+    logActivity({req, user, action: 'favorite_remove', targetType: 'recipe', targetId: recipeId});
 
     res.json({message: 'המתכון הוסר מהמועדפים', favorites: user.favorites});
   } catch (err) {

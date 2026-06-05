@@ -9,6 +9,14 @@ const ShareModal = ({isOpen, onClose, recipe}) => {
 
   const recipeUrl = `${window.location.origin}/recipe/${recipe?.shortId}`;
 
+  // Best-effort share tracking (never blocks the share action)
+  const trackShare = platform => {
+    if (!recipe?.shortId) return;
+    axios
+      .post(`/api/recipes/${recipe.shortId}/share`, {platform})
+      .catch(() => {});
+  };
+
   useEffect(() => {
     setVisibility(recipe?.visibility);
   }, [recipe]);
@@ -52,6 +60,7 @@ const ShareModal = ({isOpen, onClose, recipe}) => {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(recipeUrl);
+      trackShare('copy_link');
       setCopied(true);
       toast.success('הקישור הועתק ללוח! 📋', {icon: '✅'});
       setTimeout(() => setCopied(false), 2000);
@@ -62,11 +71,13 @@ const ShareModal = ({isOpen, onClose, recipe}) => {
   };
 
   const shareToWhatsApp = () => {
+    trackShare('whatsapp');
     const text = encodeURIComponent(`המתכון שלי: ${recipe.title} - ${recipeUrl}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   const shareToFacebook = () => {
+    trackShare('facebook');
     window.open(
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(recipeUrl)}`,
       '_blank'
@@ -74,6 +85,7 @@ const ShareModal = ({isOpen, onClose, recipe}) => {
   };
 
   const shareToTwitter = () => {
+    trackShare('twitter');
     const text = encodeURIComponent(`המתכון שלי: ${recipe.title}`);
     window.open(
       `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(recipeUrl)}`,
@@ -82,6 +94,7 @@ const ShareModal = ({isOpen, onClose, recipe}) => {
   };
 
   const shareToEmail = () => {
+    trackShare('email');
     const subject = encodeURIComponent(`המתכון שלי: ${recipe.title}`);
     const body = encodeURIComponent(`היי! רציתי לשתף איתך את המתכון הזה:\n\n${recipe.title}\n\n${recipeUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;

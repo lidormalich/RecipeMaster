@@ -35,6 +35,10 @@ const recipeSchema = new mongoose.Schema(
     videoUrl: {
       type: String,
     },
+    // קישור המקור שממנו יובא המתכון (למשל פוסט בפייסבוק)
+    sourceUrl: {
+      type: String,
+    },
     tags: [
       {
         type: Number, // globalId של התגית (מספר ייחודי)

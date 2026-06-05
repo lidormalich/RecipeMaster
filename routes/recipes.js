@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const recipeController = require('../controllers/recipeController');
+const facebookImportController = require('../controllers/facebookImportController');
 const auth = require('../middleware/auth');
 const optionalAuth = require('../middleware/optionalAuth');
 const multer = require('multer');
 const upload = multer({dest: 'uploads/'});
 
 router.get('/', optionalAuth, recipeController.getRecipes);
+
+// Import recipe from a Facebook link (AI extraction)
+router.post('/import-facebook', auth, facebookImportController.importFromFacebook);
 
 // AI Smart Assistant
 router.post('/ai-recommend', recipeController.aiRecommend);

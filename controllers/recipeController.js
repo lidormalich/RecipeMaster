@@ -198,6 +198,11 @@ exports.createRecipe = async (req, res) => {
     videoUrl,
     tags,
     visibility,
+    prepTime,
+    servings,
+    difficulty,
+    dishType,
+    sourceUrl,
   } = req.body;
 
   try {
@@ -235,6 +240,11 @@ exports.createRecipe = async (req, res) => {
       tags: processedTags,
       author: req.user.id,
       visibility,
+      prepTime: prepTime === '' ? undefined : prepTime,
+      servings: servings === '' ? undefined : servings,
+      difficulty,
+      dishType,
+      sourceUrl,
     });
 
     await recipe.save();

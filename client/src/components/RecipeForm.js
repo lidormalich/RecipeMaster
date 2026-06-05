@@ -81,6 +81,7 @@ const RecipeForm = ({
     dishType: '',
     difficulty: '',
     servings: '',
+    sourceUrl: '',
   });
 
   const [imageSelected, setImageSelected] = useState([]);
@@ -103,6 +104,7 @@ const RecipeForm = ({
         dishType: initialData.dishType || '',
         difficulty: initialData.difficulty || '',
         servings: initialData.servings || '',
+        sourceUrl: initialData.sourceUrl || '',
       });
     }
   }, [initialData]);
